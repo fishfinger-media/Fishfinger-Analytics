@@ -1,0 +1,136 @@
+---
+// Settings component — manages the list of Plausible site domains.
+// Site list is stored in localStorage so it persists across sessions.
+---
+
+<div class="p-8 max-w-lg">
+  <h1 class="text-2xl font-semibold text-slate-800 mb-1">Settings</h1>
+  <p class="text-slate-500 text-sm mb-8">
+    Add the domains of your Plausible sites. These will appear in the site
+    selector on the home page.
+  </p>
+
+  <!-- Current site list -->
+  <div class="mb-6">
+    <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Sites</h2>
+    <ul id="site-list" class="space-y-2">
+      <!-- populated by script -->
+    </ul>
+    <p id="empty-msg" class="text-sm text-slate-400 italic hidden">No sites added yet.</p>
+  </div>
+
+  <!-- Add site form -->
+  <form id="add-site-form" class="flex gap-2">
+    <input
+      id="new-site-input"
+      type="text"
+      placeholder="example.com"
+      autocomplete="off"
+      spellcheck="false"
+      class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+    />
+    <button
+      type="submit"
+      class="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+    >
+      Add site
+    </button>
+  </form>
+  <p id="form-error" class="mt-2 text-sm text-red-500 hidden"></p>
+</div>
+
+<script>
+  const STORAGE_KEY = 'fishfinger_sites';
+
+  function getSites(): string[] {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveSites(sites: string[]): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
+  }
+
+  function render(): void {
+    const sites = getSites();
+    const list = document.getElementById('site-list')!;
+    const emptyMsg = document.getElementById('empty-msg')!;
+
+    if (sites.length === 0) {
+      list.innerHTML = '';
+      emptyMsg.classList.remove('hidden');
+      return;
+    }
+
+    emptyMsg.classList.add('hidden');
+    list.innerHTML = sites
+      .map(
+        (s, i) => `
+        <li class="flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg">
+          <span class="text-sm text-slate-700 font-mono">${s}</span>
+          <button
+            data-index="${i}"
+            class="remove-btn text-slate-400 hover:text-red-500 transition-colors ml-4"
+            title="Remove ${s}"
+            aria-label="Remove ${s}"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+        </li>
+      `
+      )
+      .join('');
+
+    list.querySelectorAll<HTMLButtonElement>('.remove-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.index);
+        const updated = getSites().filter((_, i) => i !== idx);
+        saveSites(updated);
+        render();
+      });
+    });
+  }
+
+  document.getElementById('add-site-form')!.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('new-site-input') as HTMLInputElement;
+    const errorEl = document.getElementById('form-error')!;
+    const raw = input.value.trim().toLowerCase();
+
+    // Strip protocol if someone pastes a URL
+    const domain = raw.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+
+    if (!domain) {
+      errorEl.textContent = 'Please enter a domain name.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    const sites = getSites();
+    if (sites.includes(domain)) {
+      errorEl.textContent = `${domain} is already in the list.`;
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    errorEl.classList.add('hidden');
+    saveSites([...sites, domain]);
+    input.value = '';
+    render();
+  });
+
+  // Clear error on input change
+  document.getElementById('new-site-input')!.addEventListener('input', () => {
+    document.getElementById('form-error')!.classList.add('hidden');
+  });
+
+  render();
+</script>

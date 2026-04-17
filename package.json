@@ -1,0 +1,31 @@
+{
+  "name": "fishfinger-analytics",
+  "version": "1.0.0",
+  "description": "Plausible Analytics PDF report generator",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node dist/server/entry.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fishfinger-media/Fishfinger-Analytics.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@astrojs/node": "^10.0.5",
+    "@tailwindcss/vite": "^4.2.2",
+    "astro": "^6.1.7",
+    "chart.js": "^4.5.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@types/node": "^25.6.0",
+    "typescript": "^5.9.3"
+  }
+}
