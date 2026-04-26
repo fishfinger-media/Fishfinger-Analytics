@@ -1,0 +1,214 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/pdf-preview.css';
+
+const title = 'PDF slide preview — Fishfinger Analytics';
+---
+
+<Layout {title}>
+  <div class="p-6 md:p-10 max-w-[1400px] mx-auto" data-pdf-preview="root" style="--pv-scale: 1;">
+    <h1 class="text-xl font-semibold text-slate-900 mb-1">PDF slide preview</h1>
+    <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+      All report slides render here as HTML (same as the PDF pipeline). Adjust
+      <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">src/styles/pdf-preview.css</code>
+      for layout chrome, or edit inline styles in
+      <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">src/lib/pdf/slides.ts</code>
+      for slide content.
+    </p>
+
+    <div class="flex flex-col gap-4 mb-8 p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex flex-wrap gap-3 items-end">
+        <label class="flex flex-col gap-1 text-xs font-medium text-slate-600 min-w-[160px] flex-1">
+          Site ID
+          <input
+            id="pv-site"
+            type="text"
+            class="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-800"
+            placeholder="yoursite.com"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-xs font-medium text-slate-600">
+          From
+          <input id="pv-from" type="date" class="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-800" />
+        </label>
+        <label class="flex flex-col gap-1 text-xs font-medium text-slate-600">
+          To
+          <input id="pv-to" type="date" class="text-sm border border-slate-200 rounded-lg px-3 py-2 text-slate-800" />
+        </label>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          id="pv-sample"
+          class="text-sm px-4 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition-colors"
+        >
+          Sample data
+        </button>
+        <button
+          type="button"
+          id="pv-live"
+          class="text-sm px-4 py-2 rounded-lg border border-slate-300 text-slate-800 hover:border-blue-400 hover:text-blue-700 transition-colors bg-white"
+        >
+          Load live (Plausible)
+        </button>
+      </div>
+      <p id="pv-status" class="text-xs text-slate-500 min-h-[1rem]"></p>
+    </div>
+
+    <div id="pv-slides" class="flex flex-col items-center gap-14 pb-24"></div>
+  </div>
+</Layout>
+
+<script>
+  import { createSlideContainer, SLIDE_WIDTH_PX, waitForImages } from '../lib/pdf/slides';
+  import { fetchReportSlideData } from '../lib/pdf/report-data';
+  import { getSlideSpecs } from '../lib/pdf/slide-specs';
+  import {
+    SAMPLE_DATE_FROM,
+    SAMPLE_DATE_TO,
+    SAMPLE_REPORT_DATA,
+    SAMPLE_SITE_ID,
+  } from '../lib/pdf/sample-slide-data';
+  import type { ReportSlideData } from '../lib/pdf/report-data';
+  import { waitForRender } from '../lib/pdf/charts';
+
+  function updatePreviewScale(): void {
+    const root = document.querySelector<HTMLElement>('[data-pdf-preview="root"]');
+    if (!root) return;
+
+    // Make slides feel more "full width" in preview, without affecting PDF rendering.
+    // Allow a small upscale on large screens.
+    const available = root.clientWidth;
+    const scale = Math.min(1.15, Math.max(0.6, available / SLIDE_WIDTH_PX));
+    root.style.setProperty('--pv-scale', String(scale));
+  }
+
+  function destroyChartsIn(root: HTMLElement): void {
+    root.querySelectorAll('.pdf-slide').forEach((node) => {
+      const charts = (node as HTMLDivElement & { __charts?: { destroy(): void }[] }).__charts ?? [];
+      charts.forEach((c) => c.destroy());
+    });
+  }
+
+  function defaultLast28(): { from: string; to: string } {
+    const to = new Date();
+    to.setHours(0, 0, 0, 0);
+    const from = new Date(to);
+    from.setDate(from.getDate() - 27);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    return { from: fmt(from), to: fmt(to) };
+  }
+
+  function firstStoredSite(): string | null {
+    try {
+      const raw = localStorage.getItem('fishfinger_sites');
+      const sites = raw ? (JSON.parse(raw) as string[]) : [];
+      return sites.length ? sites[0]! : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function mountSlides(
+    siteId: string,
+    dateFrom: string,
+    dateTo: string,
+    data: ReportSlideData,
+    status: string
+  ): Promise<void> {
+    const root = document.getElementById('pv-slides')!;
+    const statusEl = document.getElementById('pv-status')!;
+    destroyChartsIn(root);
+    root.innerHTML = '';
+
+    const specs = getSlideSpecs(siteId, dateFrom, dateTo, data);
+    for (const spec of specs) {
+      const section = document.createElement('section');
+      section.className = 'w-full flex flex-col items-center gap-3';
+
+      const heading = document.createElement('h2');
+      heading.className = 'text-xs font-semibold uppercase text-slate-500';
+      heading.textContent = spec.label;
+
+      const frame = document.createElement('div');
+      frame.className = 'pv-frame shadow-xl rounded-sm border border-slate-300 overflow-hidden bg-white';
+
+      const container = createSlideContainer({ attachToBody: false });
+      frame.appendChild(container);
+      section.appendChild(heading);
+      section.appendChild(frame);
+      root.appendChild(section);
+
+      spec.render(container, ...(spec.args as never[]));
+      await waitForImages(container);
+      await waitForRender();
+    }
+
+    statusEl.textContent = status;
+  }
+
+  function readForm(): { site: string; from: string; to: string } {
+    const site = (document.getElementById('pv-site') as HTMLInputElement).value.trim();
+    const from = (document.getElementById('pv-from') as HTMLInputElement).value;
+    const to = (document.getElementById('pv-to') as HTMLInputElement).value;
+    return { site, from, to };
+  }
+
+  async function init(): Promise<void> {
+    updatePreviewScale();
+    window.addEventListener('resize', updatePreviewScale, { passive: true });
+
+    const stored = firstStoredSite();
+    const siteInput = document.getElementById('pv-site') as HTMLInputElement;
+    siteInput.value = stored ?? '';
+
+    const { from, to } = defaultLast28();
+    (document.getElementById('pv-from') as HTMLInputElement).value = from;
+    (document.getElementById('pv-to') as HTMLInputElement).value = to;
+
+    const n0 = getSlideSpecs(SAMPLE_SITE_ID, SAMPLE_DATE_FROM, SAMPLE_DATE_TO, SAMPLE_REPORT_DATA).length;
+    await mountSlides(
+      SAMPLE_SITE_ID,
+      SAMPLE_DATE_FROM,
+      SAMPLE_DATE_TO,
+      SAMPLE_REPORT_DATA,
+      `${n0} slides · sample data · ${SAMPLE_SITE_ID} · ${SAMPLE_DATE_FROM} → ${SAMPLE_DATE_TO}`
+    );
+
+    document.getElementById('pv-sample')!.addEventListener('click', async () => {
+      const statusEl = document.getElementById('pv-status')!;
+      statusEl.textContent = 'Rendering sample…';
+      const site = siteInput.value.trim() || SAMPLE_SITE_ID;
+      await mountSlides(
+        site,
+        SAMPLE_DATE_FROM,
+        SAMPLE_DATE_TO,
+        SAMPLE_REPORT_DATA,
+        `${getSlideSpecs(site, SAMPLE_DATE_FROM, SAMPLE_DATE_TO, SAMPLE_REPORT_DATA).length} slides · sample data · ${site} · ${SAMPLE_DATE_FROM} → ${SAMPLE_DATE_TO}`
+      );
+    });
+
+    document.getElementById('pv-live')!.addEventListener('click', async () => {
+      const statusEl = document.getElementById('pv-status')!;
+      const { site, from, to } = readForm();
+      if (!site) {
+        statusEl.textContent = 'Enter a site ID (same as in Settings), or use Sample data.';
+        return;
+      }
+      if (!from || !to || from > to) {
+        statusEl.textContent = 'Pick a valid date range (from ≤ to).';
+        return;
+      }
+      statusEl.textContent = 'Fetching from Plausible…';
+      try {
+        const data = await fetchReportSlideData(site, from, to);
+        const n = getSlideSpecs(site, from, to, data).length;
+        await mountSlides(site, from, to, data, `${n} slides · live data · ${site} · ${from} → ${to}`);
+      } catch (e) {
+        statusEl.textContent = e instanceof Error ? e.message : 'Failed to load data.';
+      }
+    });
+  }
+
+  void init();
+</script>

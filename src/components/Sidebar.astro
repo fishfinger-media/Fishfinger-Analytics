@@ -2,47 +2,100 @@
 const pathname = Astro.url.pathname;
 const isHome = pathname === '/';
 const isSettings = pathname.startsWith('/settings');
+const isPdfPreview = pathname.startsWith('/pdf-preview');
+
+interface Props {
+  pageTitle?: string;
+  pageDescription?: string;
+}
+
+const { pageTitle, pageDescription } = Astro.props;
 ---
 
-<nav class="w-14 flex flex-col items-center py-6 gap-4 border-r border-slate-200 bg-white shrink-0">
-  <!-- Logo / brand mark -->
-  <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center mb-4">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="8" width="3" height="7" rx="1" fill="white"/>
-      <rect x="6" y="5" width="3" height="10" rx="1" fill="white"/>
-      <rect x="11" y="2" width="3" height="13" rx="1" fill="white"/>
-    </svg>
+<aside class="w-[300px] shrink-0 text-white">
+  <div class="h-full flex flex-col px-7 py-7">
+    <!-- Website name -->
+    <div class="text-xs/5 opacity-90" id="sidebar-site-name">
+      Fishfinger Analytics
+    </div>
+
+    <!-- Page title + description -->
+    <div class="mt-16">
+      {pageTitle ? <h1 class="text-[28px] leading-tight font-semibold">{pageTitle}</h1> : null}
+      {pageDescription ? (
+        <p class="mt-2 max-w-[22ch] text-sm/5 opacity-90">{pageDescription}</p>
+      ) : null}
+    </div>
+
+    <!-- Nav icons (kept minimal) -->
+    <nav class="mt-auto flex items-center gap-3">
+      <a
+        href="/"
+        title="Home"
+        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+          isHome ? 'bg-white/15 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+        }`}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+          <polyline points="9 21 9 12 15 12 15 21"/>
+        </svg>
+      </a>
+
+      <a
+        href="/settings"
+        title="Settings"
+        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+          isSettings ? 'bg-white/15 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+        }`}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </a>
+
+      <a
+        href="/pdf-preview"
+        title="PDF slide preview"
+        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+          isPdfPreview ? 'bg-white/15 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+        }`}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="8" y1="13" x2="16" y2="13"/>
+          <line x1="8" y1="17" x2="14" y2="17"/>
+        </svg>
+      </a>
+    </nav>
+
+    <!-- Date range -->
+    <div class="mt-8 text-xs opacity-90" id="sidebar-date-range">—</div>
   </div>
 
-  <!-- Home -->
-  <a
-    href="/"
-    title="Home"
-    class={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-      isHome
-        ? 'bg-blue-50 text-blue-600'
-        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-    }`}
-  >
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
-      <polyline points="9 21 9 12 15 12 15 21"/>
-    </svg>
-  </a>
+  <script>
+    const LAST_REPORT_KEY = 'fishfinger_last_report';
 
-  <!-- Settings -->
-  <a
-    href="/settings"
-    title="Settings"
-    class={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-      isSettings
-        ? 'bg-blue-50 text-blue-600'
-        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-    }`}
-  >
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>
-  </a>
-</nav>
+    function fmtMonthYear(dateStr) {
+      if (!dateStr) return null;
+      const d = new Date(dateStr + 'T00:00:00');
+      if (Number.isNaN(d.getTime())) return null;
+      return d.toLocaleString(undefined, { month: 'short', year: 'numeric' });
+    }
+
+    try {
+      const elSite = document.getElementById('sidebar-site-name');
+      const elRange = document.getElementById('sidebar-date-range');
+      const raw = localStorage.getItem(LAST_REPORT_KEY);
+      const data = raw ? JSON.parse(raw) : null;
+
+      if (data?.siteId && elSite) elSite.textContent = data.siteId;
+
+      const from = fmtMonthYear(data?.dateFrom);
+      const to = fmtMonthYear(data?.dateTo);
+      if (from && to && elRange) elRange.textContent = `${from} – ${to}`;
+    } catch {}
+  </script>
+</aside>

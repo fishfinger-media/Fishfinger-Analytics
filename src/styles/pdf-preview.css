@@ -1,0 +1,22 @@
+/**
+ * PDF slide preview page (`/pdf-preview`)
+ * Optional overrides while tuning layout; slides still use inline styles from `slides.ts`.
+ */
+
+[data-pdf-preview='root'] {
+  /* e.g. scale down slides on small screens:
+  transform: scale(0.85);
+  transform-origin: top center;
+  */
+}
+
+/* Preview-only scaling so slides feel more "full width" on the page. */
+[data-pdf-preview='root'] .pv-frame {
+  width: calc(1123px * var(--pv-scale, 1));
+  height: calc(794px * var(--pv-scale, 1));
+}
+
+[data-pdf-preview='root'] .pv-frame > .pdf-slide {
+  transform: scale(var(--pv-scale, 1));
+  transform-origin: top left;
+}

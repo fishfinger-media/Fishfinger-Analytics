@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* TT Norms */
+@font-face {
+  font-family: "TT Norms";
+  src: url("/fonts/TT-Norms-Medium.otf") format("opentype");
+  font-weight: 100 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Norms";
+  src: url("/fonts/TT-Norms-Bold.otf") format("opentype");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "TT Norms", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: "TT Norms", ui-sans-serif, system-ui, sans-serif;
+  }
+}
