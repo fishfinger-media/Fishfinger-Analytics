@@ -1,0 +1,75 @@
+---
+// A print-only page used by Playwright to render the report to PDF.
+// It runs entirely in the browser: fetches Plausible data via /api/plausible,
+// renders the same slide HTML, then signals readiness.
+const siteId = Astro.url.searchParams.get('siteId') ?? '';
+const dateFrom = Astro.url.searchParams.get('dateFrom') ?? '';
+const dateTo = Astro.url.searchParams.get('dateTo') ?? '';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report print</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+      }
+
+      /* Each slide is one printed page */
+      .page {
+        break-after: page;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" define:vars={{ siteId, dateFrom, dateTo }}>
+      // Values injected by Astro via define:vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _injected = { siteId, dateFrom, dateTo };
+
+      if (!siteId || !dateFrom || !dateTo) {
+        document.body.textContent = 'Missing siteId/dateFrom/dateTo';
+        throw new Error('Missing required query params');
+      }
+
+      const root = document.getElementById('root');
+
+      const [{ fetchReportSlideData }, { getSlideSpecs }, { createSlideContainer, waitForImages }] =
+        await Promise.all([
+          import('/src/lib/pdf/report-data'),
+          import('/src/lib/pdf/slide-specs'),
+          import('/src/lib/pdf/slides'),
+        ]);
+      const { waitForRender } = await import('/src/lib/pdf/charts');
+
+      try {
+        const data = await fetchReportSlideData(siteId, dateFrom, dateTo);
+        const slides = getSlideSpecs(siteId, dateFrom, dateTo, data);
+
+        for (const slide of slides) {
+          // In the browser PDF generator we render slides off-screen for html2canvas capture.
+          // For Playwright printing we must render them in-flow so `page.pdf()` captures them.
+          const container = createSlideContainer({ attachToBody: false });
+          container.classList.add('page');
+          root.appendChild(container);
+          slide.render(container, ...(slide.args ?? []));
+          await waitForImages(container);
+          await waitForRender();
+        }
+      } catch (err) {
+        globalThis.__FISHFINGER_REPORT_ERROR__ = String(err);
+        document.body.textContent = `Report render failed: ${String(err)}`;
+      } finally {
+        globalThis.__FISHFINGER_REPORT_READY__ = true;
+      }
+    </script>
+  </body>
+</html>
+

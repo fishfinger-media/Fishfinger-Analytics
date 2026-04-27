@@ -16,11 +16,14 @@
   "license": "ISC",
   "dependencies": {
     "@astrojs/node": "^10.0.5",
+    "@slack/web-api": "^7.15.1",
     "@tailwindcss/vite": "^4.2.2",
+    "@vercel/kv": "^3.0.0",
     "astro": "^6.1.7",
     "chart.js": "^4.5.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "playwright": "^1.59.1",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {

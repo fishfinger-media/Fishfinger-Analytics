@@ -7,5 +7,10 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      // Allow Slack OAuth redirect to hit the dev server via ngrok.
+      // You can tighten this to a specific host later.
+      allowedHosts: ['.ngrok-free.app'],
+    },
   },
 });

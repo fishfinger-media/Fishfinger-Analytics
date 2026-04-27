@@ -10,6 +10,61 @@
     selector on the home page.
   </p>
 
+  <div class="mb-8">
+    <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Slack</h2>
+    <div class="flex items-center gap-3">
+      <a
+        id="connect-slack"
+        href="/api/slack/oauth/start?returnTo=%2Fsettings"
+        class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
+      >
+        Connect Slack
+      </a>
+      <span id="slack-status" class="text-sm text-slate-500">Checking…</span>
+    </div>
+    <p class="text-xs text-slate-400 mt-2">
+      For local dev, Slack OAuth requires a public URL. Use a tunnel (e.g. Cloudflare Tunnel / ngrok) and set
+      <span class="font-mono">APP_BASE_URL</span>.
+    </p>
+
+    <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+      <div class="text-xs font-semibold uppercase text-slate-400">Slack test</div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-500 w-16">Channel</label>
+        <select
+          id="slack-test-channel"
+          class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled
+        >
+          <option value="">Connect Slack to pick a channel</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs text-slate-500 w-16">Text</label>
+        <input
+          id="slack-test-text"
+          type="text"
+          class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+          placeholder="Type any message…"
+          disabled
+        />
+        <button
+          id="slack-test-send"
+          type="button"
+          class="px-3 py-2 text-xs font-medium bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
+          disabled
+        >
+          Send
+        </button>
+      </div>
+      <div id="slack-test-status" class="text-xs text-slate-400"></div>
+      <div class="text-xs text-slate-400">
+        If you see <span class="font-mono">not_in_channel</span>, invite the bot to the channel:
+        <span class="font-mono">/invite @YourAppName</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Current site list -->
   <div class="mb-6">
     <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Sites</h2>
@@ -42,6 +97,19 @@
 <script>
   const STORAGE_KEY = 'fishfinger_sites';
 
+  async function fetchSlackStatus(): Promise<{ connected: boolean; teamId: string | null }> {
+    const res = await fetch('/api/slack/status', { cache: 'no-store' });
+    if (!res.ok) return { connected: false, teamId: null };
+    return await res.json();
+  }
+
+  async function fetchChannels(): Promise<Array<{ id: string; name: string }>> {
+    const res = await fetch('/api/slack/channels', { cache: 'no-store' });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.channels ?? [];
+  }
+
   function getSites(): string[] {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
@@ -69,23 +137,68 @@
     list.innerHTML = sites
       .map(
         (s, i) => `
-        <li class="flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg">
-          <span class="text-sm text-slate-700 font-mono">${s}</span>
-          <button
-            data-index="${i}"
-            class="remove-btn text-slate-400 hover:text-red-500 transition-colors ml-4"
-            title="Remove ${s}"
-            aria-label="Remove ${s}"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-              <path d="M10 11v6M14 11v6"/>
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-            </svg>
-          </button>
-        </li>
-      `
+          <li class="px-3 py-3 bg-white border border-slate-200 rounded-lg space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-700 font-mono">${s}</span>
+              <button
+                data-index="${i}"
+                class="remove-btn text-slate-400 hover:text-red-500 transition-colors ml-4"
+                title="Remove ${s}"
+                aria-label="Remove ${s}"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 w-16">Channel</label>
+              <select
+                data-site="${s}"
+                class="channel-select flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              >
+                <option value="">Connect Slack to pick a channel</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 w-16">Test</label>
+              <button
+                type="button"
+                data-site="${s}"
+                class="test-send px-3 py-2 text-xs font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
+                disabled
+              >
+                Send test PDF
+              </button>
+              <button
+                type="button"
+                data-site="${s}"
+                class="test-msg px-3 py-2 text-xs font-medium bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
+                disabled
+              >
+                Send message
+              </button>
+              <span class="test-status text-xs text-slate-400" data-site="${s}"></span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 w-16">Text</label>
+              <input
+                type="text"
+                data-site="${s}"
+                class="msg-input flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+                placeholder="Type a message to send to the selected channel…"
+                disabled
+              />
+            </div>
+          </li>
+        `
       )
       .join('');
 
@@ -97,6 +210,147 @@
         render();
       });
     });
+  }
+
+  async function initSlackUI(): Promise<void> {
+    const statusEl = document.getElementById('slack-status')!;
+    const { connected, teamId } = await fetchSlackStatus();
+    statusEl.textContent = connected ? `Connected${teamId ? ` (${teamId})` : ''}` : 'Not connected';
+
+    if (!connected) return;
+
+    const channels = await fetchChannels();
+    const selects = Array.from(document.querySelectorAll<HTMLSelectElement>('.channel-select'));
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.test-send'));
+    const msgButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.test-msg'));
+    const msgInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.msg-input'));
+
+    const slackTestChannel = document.getElementById('slack-test-channel') as HTMLSelectElement | null;
+    const slackTestText = document.getElementById('slack-test-text') as HTMLInputElement | null;
+    const slackTestSend = document.getElementById('slack-test-send') as HTMLButtonElement | null;
+    const slackTestStatus = document.getElementById('slack-test-status') as HTMLDivElement | null;
+
+    for (const sel of selects) {
+      sel.disabled = false;
+      sel.innerHTML = `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
+    }
+
+    for (const input of msgInputs) {
+      input.disabled = false;
+    }
+
+    if (slackTestChannel) {
+      slackTestChannel.disabled = false;
+      slackTestChannel.innerHTML =
+        `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
+    }
+    if (slackTestText) slackTestText.disabled = false;
+    if (slackTestSend) slackTestSend.disabled = false;
+    if (slackTestSend) {
+      slackTestSend.addEventListener('click', async () => {
+        const channelId = slackTestChannel?.value;
+        const text = slackTestText?.value?.trim();
+        if (!channelId) {
+          if (slackTestStatus) slackTestStatus.textContent = 'Pick a channel first';
+          return;
+        }
+        if (!text) {
+          if (slackTestStatus) slackTestStatus.textContent = 'Type a message first';
+          return;
+        }
+        if (slackTestStatus) slackTestStatus.textContent = 'Sending…';
+        slackTestSend.disabled = true;
+        try {
+          const res = await fetch('/api/test/send-message-to-slack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channelId, text }),
+          });
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(j.detail || j.error || 'Failed');
+          if (slackTestStatus) slackTestStatus.textContent = 'Sent';
+        } catch (err) {
+          if (slackTestStatus) slackTestStatus.textContent = `Error: ${String(err)}`;
+        } finally {
+          slackTestSend.disabled = false;
+        }
+      });
+    }
+
+    for (const btn of buttons) {
+      btn.disabled = false;
+      btn.addEventListener('click', async () => {
+        const site = btn.dataset.site;
+        const sel = document.querySelector<HTMLSelectElement>(`.channel-select[data-site="${site}"]`);
+        const channelId = sel?.value;
+        const status = document.querySelector<HTMLSpanElement>(`.test-status[data-site="${site}"]`);
+        if (!site || !channelId) {
+          if (status) status.textContent = 'Pick a channel first';
+          return;
+        }
+
+        if (status) status.textContent = 'Generating…';
+        btn.disabled = true;
+        try {
+          const now = new Date();
+          const dateTo = now.toISOString().slice(0, 10);
+          const from = new Date(now);
+          from.setDate(from.getDate() - 30);
+          const dateFrom = from.toISOString().slice(0, 10);
+
+          const res = await fetch('/api/test/send-pdf-to-slack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ siteId: site, channelId, dateFrom, dateTo }),
+          });
+          if (!res.ok) {
+            const j = await res.json().catch(() => ({}));
+            throw new Error(j.detail || j.error || 'Failed');
+          }
+          if (status) status.textContent = 'Sent';
+        } catch (err) {
+          if (status) status.textContent = `Error: ${String(err)}`;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    for (const btn of msgButtons) {
+      btn.disabled = false;
+      btn.addEventListener('click', async () => {
+        const site = btn.dataset.site;
+        const sel = document.querySelector<HTMLSelectElement>(`.channel-select[data-site="${site}"]`);
+        const channelId = sel?.value;
+        const status = document.querySelector<HTMLSpanElement>(`.test-status[data-site="${site}"]`);
+        if (!site || !channelId) {
+          if (status) status.textContent = 'Pick a channel first';
+          return;
+        }
+
+        const input = document.querySelector<HTMLInputElement>(`.msg-input[data-site="${site}"]`);
+        const text = input?.value?.trim() || `Test message from Fishfinger Analytics for ${site} @ ${new Date().toISOString()}`;
+
+        if (status) status.textContent = 'Sending…';
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/test/send-message-to-slack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channelId, text }),
+          });
+          if (!res.ok) {
+            const j = await res.json().catch(() => ({}));
+            throw new Error(j.detail || j.error || 'Failed');
+          }
+          if (status) status.textContent = 'Sent';
+        } catch (err) {
+          if (status) status.textContent = `Error: ${String(err)}`;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
   }
 
   document.getElementById('add-site-form')!.addEventListener('submit', (e) => {
@@ -125,6 +379,7 @@
     saveSites([...sites, domain]);
     input.value = '';
     render();
+    void initSlackUI();
   });
 
   // Clear error on input change
@@ -133,4 +388,5 @@
   });
 
   render();
+  void initSlackUI();
 </script>
