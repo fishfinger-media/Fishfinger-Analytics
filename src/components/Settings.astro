@@ -122,6 +122,29 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
   }
 
+  type SiteTarget = {
+    channelId: string;
+    enabled: boolean;
+    schedule?: { timeZone: string; dayOfMonth: number; hour: number; minute: number };
+  };
+
+  async function fetchTargets(): Promise<Record<string, SiteTarget>> {
+    const res = await fetch('/api/automation/targets', { cache: 'no-store' });
+    if (!res.ok) return {};
+    const j = await res.json().catch(() => ({}));
+    return j.targets ?? {};
+  }
+
+  async function saveTarget(siteId: string, target: SiteTarget): Promise<void> {
+    const res = await fetch('/api/automation/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteId, target }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(j.detail || j.error || 'Failed to save automation');
+  }
+
   function render(): void {
     const sites = getSites();
     const list = document.getElementById('site-list')!;
@@ -156,6 +179,15 @@
             </div>
 
             <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 w-16">Auto</label>
+              <label class="inline-flex items-center gap-2 text-xs text-slate-600 select-none">
+                <input type="checkbox" class="auto-enabled" data-site="${s}" />
+                Enabled
+              </label>
+              <span class="auto-status text-xs text-slate-400" data-site="${s}"></span>
+            </div>
+
+            <div class="flex items-center gap-2">
               <label class="text-xs text-slate-500 w-16">Channel</label>
               <select
                 data-site="${s}"
@@ -164,6 +196,31 @@
               >
                 <option value="">Connect Slack to pick a channel</option>
               </select>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 items-center">
+              <div class="text-xs text-slate-500 col-span-1">Schedule</div>
+              <input
+                data-site="${s}"
+                class="auto-tz col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Europe/London"
+                disabled
+              />
+              <input
+                data-site="${s}"
+                type="number"
+                min="1"
+                max="28"
+                class="auto-day col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Day"
+                disabled
+              />
+              <input
+                data-site="${s}"
+                type="time"
+                class="auto-time col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              />
             </div>
 
             <div class="flex items-center gap-2">
@@ -217,6 +274,63 @@
     const { connected, teamId } = await fetchSlackStatus();
     statusEl.textContent = connected ? `Connected${teamId ? ` (${teamId})` : ''}` : 'Not connected';
 
+    const targets = await fetchTargets();
+
+    // Populate saved automation state even if Slack isn't connected yet.
+    for (const site of getSites()) {
+      const t = targets?.[site];
+      const enabledEl = document.querySelector<HTMLInputElement>(`.auto-enabled[data-site="${site}"]`);
+      const tzEl = document.querySelector<HTMLInputElement>(`.auto-tz[data-site="${site}"]`);
+      const dayEl = document.querySelector<HTMLInputElement>(`.auto-day[data-site="${site}"]`);
+      const timeEl = document.querySelector<HTMLInputElement>(`.auto-time[data-site="${site}"]`);
+      if (enabledEl) enabledEl.checked = Boolean(t?.enabled);
+      if (tzEl) tzEl.value = t?.schedule?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      if (dayEl) dayEl.value = String(t?.schedule?.dayOfMonth ?? 1);
+      if (timeEl) {
+        const h = t?.schedule?.hour ?? 9;
+        const m = t?.schedule?.minute ?? 0;
+        timeEl.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      }
+    }
+
+    // Bind change handlers (persist to server storage).
+    for (const site of getSites()) {
+      const enabledEl = document.querySelector<HTMLInputElement>(`.auto-enabled[data-site="${site}"]`);
+      const sel = document.querySelector<HTMLSelectElement>(`.channel-select[data-site="${site}"]`);
+      const tzEl = document.querySelector<HTMLInputElement>(`.auto-tz[data-site="${site}"]`);
+      const dayEl = document.querySelector<HTMLInputElement>(`.auto-day[data-site="${site}"]`);
+      const timeEl = document.querySelector<HTMLInputElement>(`.auto-time[data-site="${site}"]`);
+      const status = document.querySelector<HTMLSpanElement>(`.auto-status[data-site="${site}"]`);
+
+      async function persist(): Promise<void> {
+        const enabled = Boolean(enabledEl?.checked);
+        const channelId = (sel?.value || targets?.[site]?.channelId || '').trim();
+        const timeZone = (tzEl?.value || '').trim();
+        const dayOfMonth = Number(dayEl?.value || 1);
+        const [hourStr, minuteStr] = (timeEl?.value || '09:00').split(':');
+        const hour = Number(hourStr);
+        const minute = Number(minuteStr);
+
+        if (status) status.textContent = 'Saving…';
+        try {
+          await saveTarget(site, {
+            enabled,
+            channelId,
+            schedule: { timeZone, dayOfMonth, hour, minute },
+          });
+          if (status) status.textContent = 'Saved';
+        } catch (err) {
+          if (status) status.textContent = `Error: ${String(err)}`;
+        }
+      }
+
+      enabledEl?.addEventListener('change', () => void persist());
+      tzEl?.addEventListener('change', () => void persist());
+      dayEl?.addEventListener('change', () => void persist());
+      timeEl?.addEventListener('change', () => void persist());
+      sel?.addEventListener('change', () => void persist());
+    }
+
     if (!connected) return;
 
     const channels = await fetchChannels();
@@ -224,6 +338,9 @@
     const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.test-send'));
     const msgButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.test-msg'));
     const msgInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.msg-input'));
+    const tzInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.auto-tz'));
+    const dayInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.auto-day'));
+    const timeInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.auto-time'));
 
     const slackTestChannel = document.getElementById('slack-test-channel') as HTMLSelectElement | null;
     const slackTestText = document.getElementById('slack-test-text') as HTMLInputElement | null;
@@ -234,6 +351,16 @@
       sel.disabled = false;
       sel.innerHTML = `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
     }
+
+    // Apply persisted channel selection (if any) after options are loaded.
+    for (const sel of selects) {
+      const site = sel.dataset.site;
+      if (!site) continue;
+      const saved = targets?.[site]?.channelId;
+      if (saved) sel.value = saved;
+    }
+
+    for (const i of [...tzInputs, ...dayInputs, ...timeInputs]) i.disabled = false;
 
     for (const input of msgInputs) {
       input.disabled = false;

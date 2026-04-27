@@ -12,6 +12,20 @@ type SlackInstallation = {
 export type SiteTarget = {
   channelId: string;
   enabled: boolean;
+  /**
+   * “Schedule” is stored as simple fields so we can validate easily on both client + server.
+   * Actual execution can be driven by an external scheduler (e.g. Vercel Cron) calling our run endpoint.
+   */
+  schedule?: {
+    /** IANA timezone, e.g. "Europe/London" */
+    timeZone: string;
+    /** Day of month 1–28 (we cap at 28 to avoid short-month edge cases). */
+    dayOfMonth: number;
+    /** 0–23 */
+    hour: number;
+    /** 0–59 */
+    minute: number;
+  };
 };
 
 type SiteTargets = Record<string, SiteTarget>;
