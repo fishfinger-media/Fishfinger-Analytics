@@ -1,0 +1,10 @@
+{
+  "slackInstallation": {
+    "teamId": "TBLFNKTGW",
+    "accessToken": "xoxb-394532673574-11003539064818-SQ6Oitqas3cMYrhEMRNctCdb",
+    "installedAt": "2026-04-27T13:44:55.994Z",
+    "scopes": "channels:read,chat:write,files:write,chat:write.public"
+  },
+  "siteTargets": {},
+  "sent": {}
+}

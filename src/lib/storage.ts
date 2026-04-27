@@ -20,6 +20,7 @@ type StorageShape = {
   slackInstallation: SlackInstallation | null;
   siteTargets: SiteTargets;
   sent: Record<string, true>;
+  sentSlackMessages?: Record<string, { channelId: string; ts: string; storedAt: string }>;
 };
 
 const DEFAULT_DEV_STORAGE_FILE = path.join(process.cwd(), '.dev-storage.json');
@@ -37,9 +38,10 @@ async function readDevFile(): Promise<StorageShape> {
       slackInstallation: parsed.slackInstallation ?? null,
       siteTargets: parsed.siteTargets ?? {},
       sent: parsed.sent ?? {},
+      sentSlackMessages: parsed.sentSlackMessages ?? {},
     };
   } catch {
-    return { slackInstallation: null, siteTargets: {}, sent: {} };
+    return { slackInstallation: null, siteTargets: {}, sent: {}, sentSlackMessages: {} };
   }
 }
 
@@ -86,6 +88,10 @@ function sentKey(siteId: string, yyyyMm: string): string {
   return `sent:${siteId}:${yyyyMm}`;
 }
 
+function sentSlackMessageKey(siteId: string, yyyyMm: string): string {
+  return `sentSlackMessage:${siteId}:${yyyyMm}`;
+}
+
 export async function wasSent(siteId: string, yyyyMm: string): Promise<boolean> {
   const key = sentKey(siteId, yyyyMm);
   if (isKvConfigured()) return Boolean(await kv.get(key));
@@ -101,6 +107,35 @@ export async function markSent(siteId: string, yyyyMm: string): Promise<void> {
   }
   const dev = await readDevFile();
   dev.sent[key] = true;
+  await writeDevFile(dev);
+}
+
+export async function getSentSlackMessage(
+  siteId: string,
+  yyyyMm: string
+): Promise<{ channelId: string; ts: string; storedAt: string } | null> {
+  const key = sentSlackMessageKey(siteId, yyyyMm);
+  if (isKvConfigured())
+    return (await kv.get<{ channelId: string; ts: string; storedAt: string }>(key)) ?? null;
+  const dev = await readDevFile();
+  return dev.sentSlackMessages?.[key] ?? null;
+}
+
+export async function setSentSlackMessage(params: {
+  siteId: string;
+  yyyyMm: string;
+  channelId: string;
+  ts: string;
+}): Promise<void> {
+  const key = sentSlackMessageKey(params.siteId, params.yyyyMm);
+  const value = { channelId: params.channelId, ts: params.ts, storedAt: new Date().toISOString() };
+  if (isKvConfigured()) {
+    await kv.set(key, value);
+    return;
+  }
+  const dev = await readDevFile();
+  dev.sentSlackMessages = dev.sentSlackMessages ?? {};
+  dev.sentSlackMessages[key] = value;
   await writeDevFile(dev);
 }
 

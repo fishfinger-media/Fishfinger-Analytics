@@ -22,12 +22,18 @@ export async function renderReportPdfWithPlaywright(params: {
     const reportError = await page.evaluate(() => (globalThis as any).__FISHFINGER_REPORT_ERROR__ ?? null);
     if (reportError) throw new Error(String(reportError));
 
+    // Ensure print-specific CSS (e.g. @page margins) is applied.
+    await page.emulateMedia({ media: 'print' });
+
     const pdf = await page.pdf({
       format: 'A4',
       landscape: true,
       printBackground: true,
       preferCSSPageSize: false,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
+      // Tiny up-scale to avoid subpixel gutters (Chromium rounding can leave 1–3px white edges).
+      scale: 1.01,
+      // Add a small "top padding" without shrinking the page box (avoids overflow / page overlap).
+      margin: { top: '16px', right: '0', bottom: '0', left: '0' },
     });
 
     return Buffer.from(pdf);

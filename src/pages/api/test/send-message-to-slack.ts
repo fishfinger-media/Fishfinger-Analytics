@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSlackInstallation } from '../../../lib/storage';
+import { getSlackInstallation, setSentSlackMessage } from '../../../lib/storage';
 import { postSlackMessage } from '../../../lib/slack';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { channelId, text } = (body ?? {}) as Record<string, string>;
+  const { channelId, text, siteId, yyyyMm } = (body ?? {}) as Record<string, string>;
   if (!channelId || !text) {
     return new Response(JSON.stringify({ error: 'Required: channelId, text' }), {
       status: 400,
@@ -30,8 +30,11 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    await postSlackMessage({ accessToken: installation.accessToken, channelId, text });
-    return new Response(JSON.stringify({ ok: true }), {
+    const res = await postSlackMessage({ accessToken: installation.accessToken, channelId, text });
+    if (siteId && yyyyMm) {
+      await setSentSlackMessage({ siteId, yyyyMm, channelId: res.channel, ts: res.ts });
+    }
+    return new Response(JSON.stringify({ ok: true, channel: res.channel, ts: res.ts }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     });

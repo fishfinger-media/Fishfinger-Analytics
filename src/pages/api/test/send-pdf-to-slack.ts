@@ -44,8 +44,8 @@ export const POST: APIRoute = async ({ request, url }) => {
       accessToken: installation.accessToken,
       channelId,
       filename,
-      title: `Monthly report — ${siteId}`,
-      initialComment: `Test report for ${siteId} (${dateFrom} → ${dateTo})`,
+      title: `Monthly Report — ${siteId}`,
+      initialComment: `Website Analytics report for ${siteId} (${dateFrom} → ${dateTo})`,
       pdf,
     });
     return new Response(JSON.stringify({ ok: true }), {

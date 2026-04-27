@@ -23,7 +23,42 @@ const dateTo = Astro.url.searchParams.get('dateTo') ?? '';
 
       /* Each slide is one printed page */
       .page {
+        /* Modern + legacy page-break rules; Chromium is picky here. */
         break-after: page;
+        page-break-after: always;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        display: block;
+      }
+
+      @media print {
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
+
+        html,
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        /* Slack/Playwright PDF: disable ligatures everywhere for consistent text rendering. */
+        *,
+        *::before,
+        *::after {
+          font-variant-ligatures: none !important;
+          font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0 !important;
+        }
+
+        /*
+          Slides are sized in px for html2canvas/jsPDF, but for Chromium printing we want
+          an exact physical A4 box to avoid px↔paper rounding gutters.
+        */
+        .pdf-slide {
+          width: 297mm !important;
+          height: 210mm !important;
+        }
       }
     </style>
   </head>

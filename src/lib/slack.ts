@@ -6,6 +6,23 @@ export function slackClient(accessToken: string): WebClient {
   return new WebClient(accessToken);
 }
 
+export function slackPermalinkToTs(permalink: string): { channelId: string; ts: string } {
+  // Example:
+  // https://fishfingerhq.slack.com/archives/C0B0YD5LTDW/p1777301551385189
+  const url = new URL(permalink);
+  const parts = url.pathname.split('/').filter(Boolean);
+  const archivesIdx = parts.indexOf('archives');
+  const channelId = archivesIdx >= 0 ? parts[archivesIdx + 1] : undefined;
+  const p = parts[archivesIdx >= 0 ? archivesIdx + 2 : -1] ?? '';
+  if (!channelId || !p.startsWith('p')) throw new Error('Invalid Slack permalink (expected /archives/<channelId>/p...)');
+
+  const digits = p.slice(1);
+  if (!/^\d{10,}$/.test(digits)) throw new Error('Invalid Slack permalink message id');
+  const seconds = digits.slice(0, 10);
+  const micros = digits.slice(10).padStart(6, '0').slice(0, 6);
+  return { channelId, ts: `${seconds}.${micros}` };
+}
+
 export async function listSlackChannels(accessToken: string): Promise<SlackChannel[]> {
   const client = slackClient(accessToken);
   const channels: SlackChannel[] = [];
@@ -58,12 +75,24 @@ export async function postSlackMessage(params: {
   accessToken: string;
   channelId: string;
   text: string;
-}): Promise<void> {
+}): Promise<{ channel: string; ts: string }> {
   const client = slackClient(params.accessToken);
   const res = await client.chat.postMessage({
     channel: params.channelId,
     text: params.text,
   });
   if (!res.ok) throw new Error(`Slack message failed: ${'error' in res ? res.error : 'unknown_error'}`);
+  if (!res.channel || !res.ts) throw new Error('Slack message succeeded but did not return channel/ts');
+  return { channel: res.channel, ts: res.ts };
+}
+
+export async function deleteSlackMessage(params: {
+  accessToken: string;
+  channelId: string;
+  ts: string;
+}): Promise<void> {
+  const client = slackClient(params.accessToken);
+  const res = await client.chat.delete({ channel: params.channelId, ts: params.ts });
+  if (!res.ok) throw new Error(`Slack delete failed: ${'error' in res ? res.error : 'unknown_error'}`);
 }
 
