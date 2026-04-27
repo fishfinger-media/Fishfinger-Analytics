@@ -12,68 +12,63 @@ interface Props {
 const { pageTitle, pageDescription } = Astro.props;
 ---
 
-<aside class="w-[300px] shrink-0 text-white">
-  <div class="h-full flex flex-col px-7 py-7">
-    <!-- Website name -->
-    <div class="text-xs/5 opacity-90" id="sidebar-site-name">
-      Fishfinger Analytics
+<aside class="shrink-0 p-4 sticky top-0 h-screen">
+  <div
+    class="h-full w-full rounded-2xl bg-gradient-to-b from-[#fa921f] to-[#f67517] text-white flex flex-col items-center py-6 px-2"
+    style="width: 84px;"
+  >
+    <div class="w-10 mb-6">
+      <svg viewBox="0 0 22 37" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="m8.8148 6.0333c0.44471 0 0.8153-0.3706 0.8153-0.81531s-0.37059-0.8153-0.8153-0.8153c-0.44472 0-0.81531 0.37059-0.81531 0.8153s0.37059 0.81531 0.81531 0.81531z" fill="#fff"></path>
+        <path d="m13.114 4.4026c-0.4447 0-0.8153 0.37059-0.8153 0.8153s0.3706 0.81531 0.8153 0.81531c0.4448 0 0.8153-0.3706 0.8153-0.81531 0-0.45953-0.3705-0.8153-0.8153-0.8153z" fill="#fff"></path>
+        <path d="m7.9994 7.7232c0 1.6899 1.3341 3.0536 2.9648 3.0536 1.6306 0 2.9647-1.3637 2.9647-3.0536v-0.504h-5.9294v0.504zm4.8918 0.50401c-0.2224 0.88942-0.9932 1.5417-1.9271 1.5417-0.9191 0-1.7047-0.65225-1.9271-1.5417h3.8542z" fill="#fff"></path>
+        <path d="m18.658 9.6651v-6.3297c0-1.8381-1.7047-3.3353-3.8097-3.3353h-7.5601c-2.105 0-3.8097 1.4972-3.8097 3.3353v6.1074c-0.96354 1.097-4.2099 5.0252-3.0982 7.5305 0.44471 1.0376 1.4972 1.6306 3.0982 1.764v8.4791c0 1.8382 1.7047 3.3354 3.8097 3.3354h1.0228c-1.1859 1.3341-2.7276 3.4836-2.0901 5.04 0.38542 0.9339 1.3934 1.4083 3.0092 1.4083h0.23718l0.3706-0.0148 1.1118-1.2156 0.1186 0.1186 0.252 0.2372 0.9042 0.8598 0.341 0.0148h0.2372c1.6306 0 2.6682-0.4744 3.0685-1.4083 0.6522-1.5564-0.9191-3.7059-2.1198-5.04h1.1117c2.105 0 3.8097-1.4972 3.8097-3.3354v-8.5088c1.4972-0.163 2.4756-0.756 2.9055-1.7492 1.008-2.3421-1.7789-5.9591-2.9203-7.2932zm-15.179 7.3229c-0.63742-0.0741-1.3193-0.252-1.512-0.7116-0.35577-0.8301 0.47436-2.5052 1.512-4.0172v4.7288zm10.732 17.937c-0.0445 0.1186-0.3854 0.3113-1.2897 0.3409l-0.7263-0.6819-1.2156-1.423-1.927 2.1049c-0.85978-0.0148-1.1859-0.2223-1.2304-0.3409-0.23718-0.5633 1.008-2.5052 2.5941-4.0469l0.3262-0.3113h0.4743l0.3261 0.3113c1.6455 1.5417 2.9203 3.4688 2.6683 4.0469zm2.6831-7.6935c0 0.8746-0.9191 1.5861-2.0457 1.5861h-7.5601c-1.1266 0-2.0457-0.7115-2.0457-1.5861v-0.7709c0.38542 0.2076 0.81531 0.3262 1.2897 0.3262 0.93389 0 1.7492-0.4744 2.2236-1.2008 0.47436 0.7264 1.2896 1.2008 2.2235 1.2008s1.7492-0.4744 2.2236-1.2008c0.4744 0.7264 1.2897 1.2008 2.2235 1.2008 0.5485 0 1.0674-0.1631 1.4824-0.4596v0.9043h-0.0148zm0-2.1198c-0.3261 0.4743-0.8746 0.8005-1.4824 0.8005-0.9487 0-1.7195-0.7412-1.7788-1.6751v-0.1186h-0.8894v0.1186c-0.0593 0.9339-0.845 1.6751-1.7789 1.6751-0.9487 0-1.7344-0.7412-1.7788-1.6751v-0.1038h-0.88942v0.1186c-0.05929 0.9339-0.83013 1.6751-1.7788 1.6751-0.504 0-0.96354-0.2076-1.2897-0.5485v-4.6843c0.38542 0.2075 0.8153 0.341 1.2897 0.341 0.9339 0 1.7492-0.4744 2.2236-1.2008 0.47436 0.7264 1.2896 1.2008 2.2236 1.2008s1.7492-0.4744 2.2236-1.2008c0.4743 0.7264 1.2896 1.2008 2.2235 1.2008 0.5485 0 1.0673-0.1631 1.4824-0.4596v4.5361zm0-5.7813c-0.3261 0.4744-0.8746 0.8005-1.4824 0.8005-0.9487 0-1.7195-0.7412-1.7788-1.6751v-0.1186h-0.8894v0.1186c-0.0593 0.9339-0.845 1.6751-1.7789 1.6751-0.9487 0-1.7344-0.7412-1.7788-1.6751v-0.1037h-0.88942v0.1186c-0.05929 0.9338-0.83013 1.675-1.7788 1.675-0.504 0-0.96354-0.2075-1.2897-0.5484v-4.5361c0.38542 0.2075 0.8153 0.3261 1.2897 0.3261 0.9339 0 1.7492-0.4743 2.2236-1.2007 0.47436 0.7264 1.2896 1.2007 2.2236 1.2007s1.7492-0.4743 2.2236-1.2007c0.4743 0.7264 1.2896 1.2007 2.2235 1.2007 0.5485 0 1.0673-0.163 1.4824-0.4595v4.4026zm0-5.633c-0.3261 0.4744-0.8746 0.8005-1.4824 0.8005-0.9487 0-1.7195-0.7412-1.7788-1.6751v-0.1186h-0.8894v0.1186c-0.0593 0.9339-0.8302 1.6751-1.7789 1.6751s-1.7344-0.7412-1.7788-1.6751v-0.1038h-0.88942v0.1186c-0.05929 0.9339-0.83013 1.6751-1.7788 1.6751-0.504 0-0.96354-0.2075-1.2897-0.5485v-10.629c0-0.8746 0.91907-1.5861 2.0457-1.5861h7.5601c1.1266 0 2.0457 0.71154 2.0457 1.5861v10.362h0.0148zm3.0833 2.5793c-0.1779 0.4151-0.7412 0.6078-1.3193 0.6819v-4.4026c0.9487 1.4231 1.6603 2.9499 1.3193 3.7207z" fill="#fff"></path>
+      </svg>
     </div>
 
-    <!-- Page title + description -->
-    <div class="mt-16">
-      {pageTitle ? <h1 class="text-[28px] leading-tight font-semibold">{pageTitle}</h1> : null}
-      {pageDescription ? (
-        <p class="mt-2 max-w-[22ch] text-sm/5 opacity-90">{pageDescription}</p>
-      ) : null}
-    </div>
-
-    <!-- Nav icons (kept minimal) -->
-    <nav class="mt-auto flex items-center gap-3">
+    <nav class="flex flex-col items-center gap-4 w-full">
       <a
         href="/"
         title="Home"
-        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-          isHome ? 'bg-white/15 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+        aria-current={isHome ? 'page' : undefined}
+        class={`w-[70%] aspect-square rounded-[10px] flex items-center justify-center transition-colors ${
+          isHome ? 'bg-[#f67517]' : 'hover:bg-[#f67517]'
         }`}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
-          <polyline points="9 21 9 12 15 12 15 21"/>
-        </svg>
-      </a>
-
-      <a
-        href="/settings"
-        title="Settings"
-        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-          isSettings ? 'bg-white/15 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
-        }`}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"></path>
+          <polyline points="9 21 9 12 15 12 15 21"></polyline>
         </svg>
       </a>
 
       <a
         href="/pdf-preview"
-        title="PDF slide preview"
-        class={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-          isPdfPreview ? 'bg-white/15 text-white' : 'text-white/80 hover:text-white hover:bg-white/10'
+        title="Preview"
+        aria-current={isPdfPreview ? 'page' : undefined}
+        class={`w-[70%] aspect-square rounded-[10px] flex items-center justify-center transition-colors ${
+          isPdfPreview ? 'bg-[#f67517]' : 'hover:bg-[#f67517]'
         }`}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="8" y1="13" x2="16" y2="13"/>
-          <line x1="8" y1="17" x2="14" y2="17"/>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="14" y2="17"></line>
         </svg>
       </a>
     </nav>
 
-    <!-- Date range -->
-    <div class="mt-8 text-xs opacity-90" id="sidebar-date-range">—</div>
-  </div>
+    <a
+      href="/settings"
+      title="Settings"
+      aria-current={isSettings ? 'page' : undefined}
+      class="w-[70%] aspect-square rounded-[10px] flex items-center justify-center transition-colors bg-[#0b88c9] hover:bg-[#0678b2] mt-auto"
+    >
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </a>
 
   <script>
     const LAST_REPORT_KEY = 'fishfinger_last_report';

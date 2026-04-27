@@ -18,7 +18,7 @@ const { title = 'Fishfinger Analytics' } = Astro.props;
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
-  <body class="flex h-screen bg-slate-50 text-slate-800 overflow-hidden">
+  <body class="flex min-h-screen bg-slate-100 text-slate-800">
     <Sidebar />
     <main class="flex-1 overflow-auto">
       <slot />
