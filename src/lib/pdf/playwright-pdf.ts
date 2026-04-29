@@ -14,7 +14,14 @@ export async function renderReportPdfWithPlaywright(params: {
 
   const browser = await chromium.launch();
   try {
-    const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+    // Important for crisp charts in PDFs:
+    // Chart.js renders to <canvas> (raster). In headless Chromium the default DPR is ~1,
+    // so printing produces visibly pixelated graphs. A higher deviceScaleFactor increases
+    // the backing resolution for all canvases and layout.
+    const page = await browser.newPage({
+      viewport: { width: 1400, height: 900 },
+      deviceScaleFactor: 2,
+    });
     await page.goto(url, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => (globalThis as any).__FISHFINGER_REPORT_READY__ === true, null, {
       timeout: 120_000,

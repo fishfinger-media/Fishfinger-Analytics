@@ -5,97 +5,294 @@
 
 <div class="p-8 max-w-lg">
   <h1 class="text-2xl font-semibold text-slate-800 mb-1">Settings</h1>
-  <p class="text-slate-500 text-sm mb-8">
-    Add the domains of your Plausible sites. These will appear in the site
-    selector on the home page.
-  </p>
+  <p class="text-slate-500 text-sm mb-8">Configure Slack, test messages/PDFs, and manage automations.</p>
 
-  <div class="mb-8">
-    <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Slack</h2>
-    <div class="flex items-center gap-3">
-      <a
-        id="connect-slack"
-        href="/api/slack/oauth/start?returnTo=%2Fsettings"
-        class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
+  <div class="mb-6 border-b border-slate-200">
+    <div class="flex items-center gap-2 overflow-x-auto" role="tablist" aria-label="Settings sections">
+      <button
+        type="button"
+        class="settings-tab px-3 py-2 text-sm font-medium rounded-t-lg border border-slate-200 border-b-0 bg-white text-slate-900"
+        data-tab="sites"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panel-sites"
+        id="tab-sites"
       >
-        Connect Slack
-      </a>
-      <span id="slack-status" class="text-sm text-slate-500">Checking…</span>
-    </div>
-    <p class="text-xs text-slate-400 mt-2">
-      For local dev, Slack OAuth requires a public URL. Use a tunnel (e.g. Cloudflare Tunnel / ngrok) and set
-      <span class="font-mono">APP_BASE_URL</span>.
-    </p>
-
-    <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-      <div class="text-xs font-semibold uppercase text-slate-400">Slack test</div>
-      <div class="flex items-center gap-2">
-        <label class="text-xs text-slate-500 w-16">Channel</label>
-        <select
-          id="slack-test-channel"
-          class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          disabled
-        >
-          <option value="">Connect Slack to pick a channel</option>
-        </select>
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="text-xs text-slate-500 w-16">Text</label>
-        <input
-          id="slack-test-text"
-          type="text"
-          class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
-          placeholder="Type any message…"
-          disabled
-        />
-        <button
-          id="slack-test-send"
-          type="button"
-          class="px-3 py-2 text-xs font-medium bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
-          disabled
-        >
-          Send
-        </button>
-      </div>
-      <div id="slack-test-status" class="text-xs text-slate-400"></div>
-      <div class="text-xs text-slate-400">
-        If you see <span class="font-mono">not_in_channel</span>, invite the bot to the channel:
-        <span class="font-mono">/invite @YourAppName</span>
-      </div>
+        Sites
+      </button>
+      <button
+        type="button"
+        class="settings-tab px-3 py-2 text-sm font-medium rounded-t-lg text-slate-600 hover:text-slate-900"
+        data-tab="slack"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-slack"
+        id="tab-slack"
+      >
+        Slack + Test message
+      </button>
+      <button
+        type="button"
+        class="settings-tab px-3 py-2 text-sm font-medium rounded-t-lg text-slate-600 hover:text-slate-900"
+        data-tab="pdfs"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-pdfs"
+        id="tab-pdfs"
+      >
+        Test PDFs
+      </button>
+      <button
+        type="button"
+        class="settings-tab px-3 py-2 text-sm font-medium rounded-t-lg text-slate-600 hover:text-slate-900"
+        data-tab="automations"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-automations"
+        id="tab-automations"
+      >
+        Automations
+      </button>
     </div>
   </div>
 
-  <!-- Current site list -->
-  <div class="mb-6">
-    <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Sites</h2>
-    <ul id="site-list" class="space-y-2">
-      <!-- populated by script -->
-    </ul>
-    <p id="empty-msg" class="text-sm text-slate-400 italic hidden">No sites added yet.</p>
-  </div>
+  <section id="panel-sites" role="tabpanel" aria-labelledby="tab-sites" data-panel="sites">
+    <div class="mb-6">
+      <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Sites</h2>
+      <ul id="site-list" class="space-y-2">
+        <!-- populated by script -->
+      </ul>
+      <p id="empty-msg" class="text-sm text-slate-400 italic hidden">No sites added yet.</p>
+    </div>
 
-  <!-- Add site form -->
-  <form id="add-site-form" class="flex gap-2">
-    <input
-      id="new-site-input"
-      type="text"
-      placeholder="example.com"
-      autocomplete="off"
-      spellcheck="false"
-      class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
-    />
-    <button
-      type="submit"
-      class="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
-    >
-      Add site
-    </button>
-  </form>
-  <p id="form-error" class="mt-2 text-sm text-red-500 hidden"></p>
+    <form id="add-site-form" class="flex gap-2">
+      <input
+        id="new-site-input"
+        type="text"
+        placeholder="example.com"
+        autocomplete="off"
+        spellcheck="false"
+        class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+      />
+      <button
+        type="submit"
+        class="px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+      >
+        Add site
+      </button>
+    </form>
+    <p id="form-error" class="mt-2 text-sm text-red-500 hidden"></p>
+  </section>
+
+  <section id="panel-slack" role="tabpanel" aria-labelledby="tab-slack" data-panel="slack" class="hidden">
+    <div class="mb-8">
+      <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Slack</h2>
+      <div class="flex items-center gap-3">
+        <a
+          id="connect-slack"
+          href="/api/slack/oauth/start?returnTo=%2Fsettings"
+          class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
+        >
+          Connect Slack
+        </a>
+        <span id="slack-status" class="text-sm text-slate-500">Checking…</span>
+      </div>
+      <p class="text-xs text-slate-400 mt-2">
+        For local dev, Slack OAuth requires a public URL. Use a tunnel (e.g. Cloudflare Tunnel / ngrok) and set
+        <span class="font-mono">APP_BASE_URL</span>.
+      </p>
+
+      <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+        <div class="text-xs font-semibold uppercase text-slate-400">Send test text message</div>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-500 w-16">Channel</label>
+          <select
+            id="slack-test-channel"
+            class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled
+          >
+            <option value="">Connect Slack to pick a channel</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-500 w-16">Text</label>
+          <input
+            id="slack-test-text"
+            type="text"
+            class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
+            placeholder="Type any message…"
+            disabled
+          />
+          <button
+            id="slack-test-send"
+            type="button"
+            class="px-3 py-2 text-xs font-medium bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
+            disabled
+          >
+            Send
+          </button>
+        </div>
+        <div id="slack-test-status" class="text-xs text-slate-400"></div>
+        <div class="text-xs text-slate-400">
+          If you see <span class="font-mono">not_in_channel</span>, invite the bot to the channel:
+          <span class="font-mono">/invite @YourAppName</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-pdfs" role="tabpanel" aria-labelledby="tab-pdfs" data-panel="pdfs" class="hidden">
+    <div class="mb-8">
+      <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Test PDFs</h2>
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-500 w-16">Website</label>
+          <select
+            id="pdf-test-site"
+            class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select a website…</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-500 w-16">Channel</label>
+          <select
+            id="pdf-test-channel"
+            class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled
+          >
+            <option value="">Connect Slack to pick a channel</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            id="pdf-test-send"
+            type="button"
+            class="px-3 py-2 text-xs font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
+            disabled
+          >
+            Send test PDF
+          </button>
+          <span id="pdf-test-status" class="text-xs text-slate-400"></span>
+        </div>
+        <div class="text-xs text-slate-400">Default range: last day of previous month → today.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-automations" role="tabpanel" aria-labelledby="tab-automations" data-panel="automations" class="hidden">
+    <div class="mt-2">
+      <h2 class="text-xs font-semibold uppercase text-slate-400 mb-3">Automations</h2>
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+        <div class="text-xs text-slate-400">
+          Create an automation by choosing a website, Slack channel, and the next run date+time.
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 items-center">
+          <div class="text-xs text-slate-500 col-span-1">Website</div>
+          <select
+            id="auto-create-site"
+            class="col-span-3 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">Select a website…</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 items-center">
+          <div class="text-xs text-slate-500 col-span-1">Channel</div>
+          <select
+            id="auto-create-channel"
+            class="col-span-3 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled
+          >
+            <option value="">Connect Slack to pick a channel</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-4 gap-2 items-center">
+          <div class="text-xs text-slate-500 col-span-1">Run at</div>
+          <input
+            id="auto-create-datetime"
+            type="datetime-local"
+            class="col-span-2 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <button
+            id="auto-create-save"
+            type="button"
+            class="col-span-1 px-3 py-2 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50"
+            disabled
+          >
+            Save
+          </button>
+        </div>
+        <div id="auto-create-status" class="text-xs text-slate-400"></div>
+      </div>
+
+      <ul id="automation-list" class="mt-4 space-y-2">
+        <!-- populated by script -->
+      </ul>
+    </div>
+  </section>
 </div>
 
 <script>
   const STORAGE_KEY = 'fishfinger_sites';
+  const SETTINGS_TAB_KEY = 'fishfinger_settings_active_tab';
+
+  function setActiveSettingsTab(tab: string): void {
+    const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.settings-tab'));
+    const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
+
+    for (const t of tabs) {
+      const on = t.dataset.tab === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      t.classList.toggle('bg-white', on);
+      t.classList.toggle('border', on);
+      t.classList.toggle('border-slate-200', on);
+      t.classList.toggle('border-b-0', on);
+      t.classList.toggle('text-slate-900', on);
+      t.classList.toggle('text-slate-600', !on);
+    }
+
+    for (const p of panels) {
+      p.classList.toggle('hidden', p.dataset.panel !== tab);
+    }
+
+    try {
+      localStorage.setItem(SETTINGS_TAB_KEY, tab);
+    } catch {
+      // ignore
+    }
+  }
+
+  function initSettingsTabs(): void {
+    const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.settings-tab'));
+    if (tabs.length === 0) return;
+
+    let initial = 'sites';
+    const hash = (location.hash || '').replace(/^#/, '');
+    if (hash && tabs.some((t) => t.dataset.tab === hash)) initial = hash;
+    else {
+      try {
+        const saved = localStorage.getItem(SETTINGS_TAB_KEY);
+        if (saved && tabs.some((t) => t.dataset.tab === saved)) initial = saved;
+      } catch {
+        // ignore
+      }
+    }
+
+    for (const t of tabs) {
+      t.addEventListener('click', () => {
+        const tab = t.dataset.tab;
+        if (!tab) return;
+        setActiveSettingsTab(tab);
+        history.replaceState(null, '', `#${tab}`);
+      });
+    }
+
+    setActiveSettingsTab(initial);
+  }
 
   async function fetchSlackStatus(): Promise<{ connected: boolean; teamId: string | null }> {
     const res = await fetch('/api/slack/status', { cache: 'no-store' });
@@ -125,7 +322,7 @@
   type SiteTarget = {
     channelId: string;
     enabled: boolean;
-    schedule?: { timeZone: string; dayOfMonth: number; hour: number; minute: number };
+    schedule?: { timeZone: string; runAt: string };
   };
 
   async function fetchTargets(): Promise<Record<string, SiteTarget>> {
@@ -145,7 +342,7 @@
     if (!res.ok) throw new Error(j.detail || j.error || 'Failed to save automation');
   }
 
-  function render(): void {
+  function renderSites(): void {
     const sites = getSites();
     const list = document.getElementById('site-list')!;
     const emptyMsg = document.getElementById('empty-msg')!;
@@ -177,83 +374,6 @@
                 </svg>
               </button>
             </div>
-
-            <div class="flex items-center gap-2">
-              <label class="text-xs text-slate-500 w-16">Auto</label>
-              <label class="inline-flex items-center gap-2 text-xs text-slate-600 select-none">
-                <input type="checkbox" class="auto-enabled" data-site="${s}" />
-                Enabled
-              </label>
-              <span class="auto-status text-xs text-slate-400" data-site="${s}"></span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <label class="text-xs text-slate-500 w-16">Channel</label>
-              <select
-                data-site="${s}"
-                class="channel-select flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled
-              >
-                <option value="">Connect Slack to pick a channel</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-4 gap-2 items-center">
-              <div class="text-xs text-slate-500 col-span-1">Schedule</div>
-              <input
-                data-site="${s}"
-                class="auto-tz col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Europe/London"
-                disabled
-              />
-              <input
-                data-site="${s}"
-                type="number"
-                min="1"
-                max="28"
-                class="auto-day col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Day"
-                disabled
-              />
-              <input
-                data-site="${s}"
-                type="time"
-                class="auto-time col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled
-              />
-            </div>
-
-            <div class="flex items-center gap-2">
-              <label class="text-xs text-slate-500 w-16">Test</label>
-              <button
-                type="button"
-                data-site="${s}"
-                class="test-send px-3 py-2 text-xs font-medium bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
-                disabled
-              >
-                Send test PDF
-              </button>
-              <button
-                type="button"
-                data-site="${s}"
-                class="test-msg px-3 py-2 text-xs font-medium bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition-colors disabled:opacity-50"
-                disabled
-              >
-                Send message
-              </button>
-              <span class="test-status text-xs text-slate-400" data-site="${s}"></span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <label class="text-xs text-slate-500 w-16">Text</label>
-              <input
-                type="text"
-                data-site="${s}"
-                class="msg-input flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400"
-                placeholder="Type a message to send to the selected channel…"
-                disabled
-              />
-            </div>
           </li>
         `
       )
@@ -264,8 +384,139 @@
         const idx = Number(btn.dataset.index);
         const updated = getSites().filter((_, i) => i !== idx);
         saveSites(updated);
-        render();
+        renderSites();
+        renderAutomationUI();
+        renderTestPdfUI();
       });
+    });
+  }
+
+  function renderTestPdfUI(): void {
+    const sites = getSites();
+    const siteSelect = document.getElementById('pdf-test-site') as HTMLSelectElement | null;
+    if (!siteSelect) return;
+    const current = siteSelect.value;
+    siteSelect.innerHTML =
+      `<option value="">Select a website…</option>` + sites.map((s) => `<option value="${s}">${s}</option>`).join('');
+    if (current && sites.includes(current)) siteSelect.value = current;
+  }
+
+  function toDatetimeLocalValue(iso: string): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function renderAutomationUI(targets: Record<string, SiteTarget> = {}): void {
+    const sites = getSites();
+
+    const createSite = document.getElementById('auto-create-site') as HTMLSelectElement | null;
+    if (createSite) {
+      const cur = createSite.value;
+      createSite.innerHTML =
+        `<option value="">Select a website…</option>` + sites.map((s) => `<option value="${s}">${s}</option>`).join('');
+      if (cur && sites.includes(cur)) createSite.value = cur;
+    }
+
+    const list = document.getElementById('automation-list') as HTMLUListElement | null;
+    if (!list) return;
+
+    const withTargets = sites.map((siteId) => ({ siteId, target: targets?.[siteId] })).filter((x) => x.target);
+    if (withTargets.length === 0) {
+      list.innerHTML = `<li class="text-sm text-slate-400 italic">No automations configured yet.</li>`;
+      return;
+    }
+
+    list.innerHTML = withTargets
+      .map(({ siteId, target }) => {
+        const enabled = Boolean(target?.enabled);
+        const tz = target?.schedule?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+        const runAt = target?.schedule?.runAt ? toDatetimeLocalValue(target.schedule.runAt) : '';
+
+        return `
+          <li class="px-3 py-3 bg-white border border-slate-200 rounded-lg space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-700 font-mono">${siteId}</span>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="auto-delete text-xs text-red-600 hover:text-red-700"
+                  data-site="${siteId}"
+                  title="Delete automation"
+                >
+                  Delete
+                </button>
+                <span class="auto-status text-xs text-slate-400" data-site="${siteId}"></span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 w-16">Enabled</label>
+              <input type="checkbox" class="auto-enabled" data-site="${siteId}" ${enabled ? 'checked' : ''} />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500 w-16">Channel</label>
+              <select
+                data-site="${siteId}"
+                class="auto-channel flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              >
+                <option value="">Connect Slack to pick a channel</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 items-center">
+              <div class="text-xs text-slate-500 col-span-1">Run at</div>
+              <input
+                data-site="${siteId}"
+                type="datetime-local"
+                class="auto-runAt col-span-2 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value="${runAt}"
+                ${enabled ? '' : 'disabled'}
+              />
+              <input
+                data-site="${siteId}"
+                class="auto-tz col-span-1 px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value="${tz}"
+                placeholder="Europe/London"
+                ${enabled ? '' : 'disabled'}
+              />
+            </div>
+          </li>
+        `;
+      })
+      .join('');
+
+    list.querySelectorAll<HTMLButtonElement>('.auto-delete').forEach((btn) => {
+      btn.onclick = async () => {
+        const siteId = btn.dataset.site;
+        if (!siteId) return;
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/automation/targets', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ siteId }),
+          });
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(j.detail || j.error || 'Failed');
+          const refreshed = await fetchTargets();
+          renderAutomationUI(refreshed);
+          // If Slack is connected, channel options + handlers need re-hydration.
+          const { connected } = await fetchSlackStatus();
+          if (connected) {
+            const channels = await fetchChannels();
+            await hydrateAutomationControls({ channels, targets: refreshed });
+          }
+        } catch (err) {
+          const status = document.querySelector<HTMLSpanElement>(`.auto-status[data-site="${siteId}"]`);
+          if (status) status.textContent = `Error: ${String(err)}`;
+        } finally {
+          btn.disabled = false;
+        }
+      };
     });
   }
 
@@ -275,96 +526,17 @@
     statusEl.textContent = connected ? `Connected${teamId ? ` (${teamId})` : ''}` : 'Not connected';
 
     const targets = await fetchTargets();
-
-    // Populate saved automation state even if Slack isn't connected yet.
-    for (const site of getSites()) {
-      const t = targets?.[site];
-      const enabledEl = document.querySelector<HTMLInputElement>(`.auto-enabled[data-site="${site}"]`);
-      const tzEl = document.querySelector<HTMLInputElement>(`.auto-tz[data-site="${site}"]`);
-      const dayEl = document.querySelector<HTMLInputElement>(`.auto-day[data-site="${site}"]`);
-      const timeEl = document.querySelector<HTMLInputElement>(`.auto-time[data-site="${site}"]`);
-      if (enabledEl) enabledEl.checked = Boolean(t?.enabled);
-      if (tzEl) tzEl.value = t?.schedule?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-      if (dayEl) dayEl.value = String(t?.schedule?.dayOfMonth ?? 1);
-      if (timeEl) {
-        const h = t?.schedule?.hour ?? 9;
-        const m = t?.schedule?.minute ?? 0;
-        timeEl.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      }
-    }
-
-    // Bind change handlers (persist to server storage).
-    for (const site of getSites()) {
-      const enabledEl = document.querySelector<HTMLInputElement>(`.auto-enabled[data-site="${site}"]`);
-      const sel = document.querySelector<HTMLSelectElement>(`.channel-select[data-site="${site}"]`);
-      const tzEl = document.querySelector<HTMLInputElement>(`.auto-tz[data-site="${site}"]`);
-      const dayEl = document.querySelector<HTMLInputElement>(`.auto-day[data-site="${site}"]`);
-      const timeEl = document.querySelector<HTMLInputElement>(`.auto-time[data-site="${site}"]`);
-      const status = document.querySelector<HTMLSpanElement>(`.auto-status[data-site="${site}"]`);
-
-      async function persist(): Promise<void> {
-        const enabled = Boolean(enabledEl?.checked);
-        const channelId = (sel?.value || targets?.[site]?.channelId || '').trim();
-        const timeZone = (tzEl?.value || '').trim();
-        const dayOfMonth = Number(dayEl?.value || 1);
-        const [hourStr, minuteStr] = (timeEl?.value || '09:00').split(':');
-        const hour = Number(hourStr);
-        const minute = Number(minuteStr);
-
-        if (status) status.textContent = 'Saving…';
-        try {
-          await saveTarget(site, {
-            enabled,
-            channelId,
-            schedule: { timeZone, dayOfMonth, hour, minute },
-          });
-          if (status) status.textContent = 'Saved';
-        } catch (err) {
-          if (status) status.textContent = `Error: ${String(err)}`;
-        }
-      }
-
-      enabledEl?.addEventListener('change', () => void persist());
-      tzEl?.addEventListener('change', () => void persist());
-      dayEl?.addEventListener('change', () => void persist());
-      timeEl?.addEventListener('change', () => void persist());
-      sel?.addEventListener('change', () => void persist());
-    }
+    renderAutomationUI(targets);
+    renderTestPdfUI();
 
     if (!connected) return;
 
     const channels = await fetchChannels();
-    const selects = Array.from(document.querySelectorAll<HTMLSelectElement>('.channel-select'));
-    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.test-send'));
-    const msgButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.test-msg'));
-    const msgInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.msg-input'));
-    const tzInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.auto-tz'));
-    const dayInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.auto-day'));
-    const timeInputs = Array.from(document.querySelectorAll<HTMLInputElement>('.auto-time'));
 
     const slackTestChannel = document.getElementById('slack-test-channel') as HTMLSelectElement | null;
     const slackTestText = document.getElementById('slack-test-text') as HTMLInputElement | null;
     const slackTestSend = document.getElementById('slack-test-send') as HTMLButtonElement | null;
     const slackTestStatus = document.getElementById('slack-test-status') as HTMLDivElement | null;
-
-    for (const sel of selects) {
-      sel.disabled = false;
-      sel.innerHTML = `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
-    }
-
-    // Apply persisted channel selection (if any) after options are loaded.
-    for (const sel of selects) {
-      const site = sel.dataset.site;
-      if (!site) continue;
-      const saved = targets?.[site]?.channelId;
-      if (saved) sel.value = saved;
-    }
-
-    for (const i of [...tzInputs, ...dayInputs, ...timeInputs]) i.disabled = false;
-
-    for (const input of msgInputs) {
-      input.disabled = false;
-    }
 
     if (slackTestChannel) {
       slackTestChannel.disabled = false;
@@ -374,7 +546,7 @@
     if (slackTestText) slackTestText.disabled = false;
     if (slackTestSend) slackTestSend.disabled = false;
     if (slackTestSend) {
-      slackTestSend.addEventListener('click', async () => {
+      slackTestSend.onclick = async () => {
         const channelId = slackTestChannel?.value;
         const text = slackTestText?.value?.trim();
         if (!channelId) {
@@ -401,82 +573,176 @@
         } finally {
           slackTestSend.disabled = false;
         }
-      });
+      };
     }
 
-    for (const btn of buttons) {
-      btn.disabled = false;
-      btn.addEventListener('click', async () => {
-        const site = btn.dataset.site;
-        const sel = document.querySelector<HTMLSelectElement>(`.channel-select[data-site="${site}"]`);
-        const channelId = sel?.value;
-        const status = document.querySelector<HTMLSpanElement>(`.test-status[data-site="${site}"]`);
-        if (!site || !channelId) {
-          if (status) status.textContent = 'Pick a channel first';
-          return;
-        }
+    const pdfChannel = document.getElementById('pdf-test-channel') as HTMLSelectElement | null;
+    const pdfSite = document.getElementById('pdf-test-site') as HTMLSelectElement | null;
+    const pdfSend = document.getElementById('pdf-test-send') as HTMLButtonElement | null;
+    const pdfStatus = document.getElementById('pdf-test-status') as HTMLSpanElement | null;
 
-        if (status) status.textContent = 'Generating…';
-        btn.disabled = true;
-        try {
-          const now = new Date();
-          const dateTo = now.toISOString().slice(0, 10);
-          const from = new Date(now);
-          from.setDate(from.getDate() - 30);
-          const dateFrom = from.toISOString().slice(0, 10);
+    if (pdfChannel) {
+      pdfChannel.disabled = false;
+      pdfChannel.innerHTML =
+        `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
+    }
+    if (pdfSend) pdfSend.disabled = false;
 
-          const res = await fetch('/api/test/send-pdf-to-slack', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ siteId: site, channelId, dateFrom, dateTo }),
-          });
-          if (!res.ok) {
-            const j = await res.json().catch(() => ({}));
-            throw new Error(j.detail || j.error || 'Failed');
-          }
-          if (status) status.textContent = 'Sent';
-        } catch (err) {
-          if (status) status.textContent = `Error: ${String(err)}`;
-        } finally {
-          btn.disabled = false;
-        }
-      });
+    if (pdfSend) {
+      pdfSend.onclick = async () => {
+      const siteId = pdfSite?.value?.trim();
+      const channelId = pdfChannel?.value?.trim();
+      if (!siteId) {
+        if (pdfStatus) pdfStatus.textContent = 'Pick a website first';
+        return;
+      }
+      if (!channelId) {
+        if (pdfStatus) pdfStatus.textContent = 'Pick a channel first';
+        return;
+      }
+
+      if (pdfStatus) pdfStatus.textContent = 'Generating…';
+      if (pdfSend) pdfSend.disabled = true;
+      try {
+        const now = new Date();
+        const dateTo = now.toISOString().slice(0, 10); // UTC day
+        // Default: last day of previous month → today (UTC), matching automation behavior.
+        const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
+        const dateFrom = from.toISOString().slice(0, 10);
+
+        const res = await fetch('/api/test/send-pdf-to-slack', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId, channelId, dateFrom, dateTo }),
+        });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(j.detail || j.error || 'Failed');
+        if (pdfStatus) pdfStatus.textContent = 'Sent';
+      } catch (err) {
+        if (pdfStatus) pdfStatus.textContent = `Error: ${String(err)}`;
+      } finally {
+        if (pdfSend) pdfSend.disabled = false;
+      }
+      };
     }
 
-    for (const btn of msgButtons) {
-      btn.disabled = false;
-      btn.addEventListener('click', async () => {
-        const site = btn.dataset.site;
-        const sel = document.querySelector<HTMLSelectElement>(`.channel-select[data-site="${site}"]`);
-        const channelId = sel?.value;
-        const status = document.querySelector<HTMLSpanElement>(`.test-status[data-site="${site}"]`);
-        if (!site || !channelId) {
-          if (status) status.textContent = 'Pick a channel first';
-          return;
-        }
+    const createChannel = document.getElementById('auto-create-channel') as HTMLSelectElement | null;
+    const createSite = document.getElementById('auto-create-site') as HTMLSelectElement | null;
+    const createDatetime = document.getElementById('auto-create-datetime') as HTMLInputElement | null;
+    const createSave = document.getElementById('auto-create-save') as HTMLButtonElement | null;
+    const createStatus = document.getElementById('auto-create-status') as HTMLDivElement | null;
 
-        const input = document.querySelector<HTMLInputElement>(`.msg-input[data-site="${site}"]`);
-        const text = input?.value?.trim() || `Test message from Fishfinger Analytics for ${site} @ ${new Date().toISOString()}`;
+    if (createChannel) {
+      createChannel.disabled = false;
+      createChannel.innerHTML =
+        `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
+    }
+    if (createSave) createSave.disabled = false;
 
-        if (status) status.textContent = 'Sending…';
-        btn.disabled = true;
+    if (createSave) {
+      createSave.onclick = async () => {
+      const siteId = createSite?.value?.trim();
+      const channelId = createChannel?.value?.trim();
+      const dt = createDatetime?.value?.trim();
+      if (!siteId) {
+        if (createStatus) createStatus.textContent = 'Pick a website first';
+        return;
+      }
+      if (!channelId) {
+        if (createStatus) createStatus.textContent = 'Pick a channel first';
+        return;
+      }
+      if (!dt) {
+        if (createStatus) createStatus.textContent = 'Pick a date+time first';
+        return;
+      }
+
+      const runAt = new Date(dt);
+      if (Number.isNaN(runAt.getTime())) {
+        if (createStatus) createStatus.textContent = 'Invalid date+time';
+        return;
+      }
+
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+      if (createStatus) createStatus.textContent = 'Saving…';
+      if (createSave) createSave.disabled = true;
+      try {
+        await saveTarget(siteId, { enabled: true, channelId, schedule: { timeZone, runAt: runAt.toISOString() } });
+        if (createStatus) createStatus.textContent = 'Saved';
+        const refreshed = await fetchTargets();
+        renderAutomationUI(refreshed);
+        await hydrateAutomationControls({ channels, targets: refreshed });
+      } catch (err) {
+        if (createStatus) createStatus.textContent = `Error: ${String(err)}`;
+      } finally {
+        if (createSave) createSave.disabled = false;
+      }
+      };
+    }
+
+    await hydrateAutomationControls({ channels, targets });
+  }
+
+  async function hydrateAutomationControls(params: {
+    channels: Array<{ id: string; name: string }>;
+    targets: Record<string, SiteTarget>;
+  }): Promise<void> {
+    const { channels, targets } = params;
+
+    const selects = Array.from(document.querySelectorAll<HTMLSelectElement>('.auto-channel'));
+    for (const sel of selects) {
+      sel.disabled = false;
+      sel.innerHTML =
+        `<option value="">Select a channel…</option>` + channels.map((c) => `<option value="${c.id}">#${c.name}</option>`).join('');
+      const site = sel.dataset.site;
+      if (!site) continue;
+      const saved = targets?.[site]?.channelId;
+      if (saved) sel.value = saved;
+    }
+
+    for (const site of getSites()) {
+      const enabledEl = document.querySelector<HTMLInputElement>(`.auto-enabled[data-site="${site}"]`);
+      const sel = document.querySelector<HTMLSelectElement>(`.auto-channel[data-site="${site}"]`);
+      const tzEl = document.querySelector<HTMLInputElement>(`.auto-tz[data-site="${site}"]`);
+      const runEl = document.querySelector<HTMLInputElement>(`.auto-runAt[data-site="${site}"]`);
+      const status = document.querySelector<HTMLSpanElement>(`.auto-status[data-site="${site}"]`);
+      if (!enabledEl || !sel) continue;
+
+      const current = targets?.[site];
+      if (current?.channelId) sel.value = current.channelId;
+      if (tzEl) tzEl.value = current?.schedule?.timeZone || tzEl.value || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      if (runEl && current?.schedule?.runAt) runEl.value = toDatetimeLocalValue(current.schedule.runAt);
+
+      async function persist(): Promise<void> {
+        const enabled = Boolean(enabledEl?.checked);
+        const channelId = (sel?.value || '').trim();
+        const timeZone = (tzEl?.value || '').trim() || (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+        const dt = (runEl?.value || '').trim();
+        const runAt = dt ? new Date(dt) : null;
+
+        if (status) status.textContent = 'Saving…';
         try {
-          const res = await fetch('/api/test/send-message-to-slack', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ channelId, text }),
+          await saveTarget(site, {
+            enabled,
+            channelId,
+            schedule: runAt && !Number.isNaN(runAt.getTime()) ? { timeZone, runAt: runAt.toISOString() } : undefined,
           });
-          if (!res.ok) {
-            const j = await res.json().catch(() => ({}));
-            throw new Error(j.detail || j.error || 'Failed');
-          }
-          if (status) status.textContent = 'Sent';
+          if (status) status.textContent = 'Saved';
         } catch (err) {
           if (status) status.textContent = `Error: ${String(err)}`;
-        } finally {
-          btn.disabled = false;
         }
+      }
+
+      enabledEl.addEventListener('change', () => {
+        const on = Boolean(enabledEl.checked);
+        if (runEl) runEl.disabled = !on;
+        if (tzEl) tzEl.disabled = !on;
+        void persist();
       });
+      sel.addEventListener('change', () => void persist());
+      tzEl?.addEventListener('change', () => void persist());
+      runEl?.addEventListener('change', () => void persist());
     }
   }
 
@@ -505,7 +771,9 @@
     errorEl.classList.add('hidden');
     saveSites([...sites, domain]);
     input.value = '';
-    render();
+    renderSites();
+    renderAutomationUI();
+    renderTestPdfUI();
     void initSlackUI();
   });
 
@@ -514,6 +782,9 @@
     document.getElementById('form-error')!.classList.add('hidden');
   });
 
-  render();
+  renderSites();
+  renderAutomationUI();
+  renderTestPdfUI();
+  initSettingsTabs();
   void initSlackUI();
 </script>

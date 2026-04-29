@@ -102,9 +102,21 @@
     });
   }
 
-  // ── Default date range: last 28 days ───────────────────────────────────────
+  // ── Default date range ─────────────────────────────────────────────────────
   function toDateStr(d: Date): string {
     return d.toISOString().slice(0, 10);
+  }
+
+  function setDefaultRange(): void {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    // Default: last day of previous month → today (UTC-ish, via ISO string).
+    // This avoids confusing month-month labels in the PDF header.
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
+    const fromInput = document.getElementById('date-from') as HTMLInputElement;
+    const toInput = document.getElementById('date-to') as HTMLInputElement;
+    fromInput.value = toDateStr(from);
+    toInput.value = toDateStr(now);
   }
 
   function setPreset(days: number | 'month' | 'lastmonth'): void {
@@ -131,8 +143,8 @@
     }
   }
 
-  // Default: last 28 days
-  setPreset(28);
+  // Default: last day of previous month → today
+  setDefaultRange();
 
   // Preset buttons
   document.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach((btn) => {

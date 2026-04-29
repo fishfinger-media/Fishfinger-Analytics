@@ -90,13 +90,13 @@ const title = 'PDF slide preview — Fishfinger Analytics';
     });
   }
 
-  function defaultLast28(): { from: string; to: string } {
-    const to = new Date();
-    to.setHours(0, 0, 0, 0);
-    const from = new Date(to);
-    from.setDate(from.getDate() - 27);
+  function defaultRange(): { from: string; to: string } {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    // Default: last day of previous month → today (UTC).
+    const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));
     const fmt = (d: Date) => d.toISOString().slice(0, 10);
-    return { from: fmt(from), to: fmt(to) };
+    return { from: fmt(from), to: fmt(now) };
   }
 
   function firstStoredSite(): string | null {
@@ -162,7 +162,7 @@ const title = 'PDF slide preview — Fishfinger Analytics';
     const siteInput = document.getElementById('pv-site') as HTMLInputElement;
     siteInput.value = stored ?? '';
 
-    const { from, to } = defaultLast28();
+    const { from, to } = defaultRange();
     (document.getElementById('pv-from') as HTMLInputElement).value = from;
     (document.getElementById('pv-to') as HTMLInputElement).value = to;
 

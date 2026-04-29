@@ -11,6 +11,8 @@ export const SLIDE_WIDTH_PX = 1123;
 export const SLIDE_HEIGHT_PX = 794;
 /** Chart.js backing-store scale for country bar chart (html2canvas + thin bars). */
 const PDF_COUNTRY_CHART_DPR = 3;
+/** Chart.js backing-store scale for line charts (Slack/Playwright PDF printing). */
+const PDF_LINE_CHART_DPR = 2.5;
 const PANEL_PAD_Y = 44 * 2; // matches slideFrame() right-panel padding (top+bottom)
 const CONTENT_H_PX = SLIDE_HEIGHT_PX - PANEL_PAD_Y;
 const SIDEBAR_W_PX = 270; // matches slideFrame()
@@ -693,6 +695,7 @@ export function renderTimeseries(
     options: {
       animation: false,
       responsive: false,
+      devicePixelRatio: PDF_LINE_CHART_DPR,
       plugins: { legend: { position: 'bottom', ...darkLegend } },
       scales: {
         x: darkScaleX({

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getSiteTargets, getSlackInstallation } from '../../../lib/storage';
+import { getSiteTargets, getSlackInstallation, setSiteTarget } from '../../../lib/storage';
 import { uploadPdfToSlack } from '../../../lib/slack';
 import { renderReportPdfWithPlaywright } from '../../../lib/pdf/playwright-pdf';
 
@@ -10,15 +10,17 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
-function previousFullMonthRangeUtc(now = new Date()): { dateFrom: string; dateTo: string; label: string } {
-  // Previous calendar month in UTC.
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth(); // 0-11 for *current* month
-  const start = new Date(Date.UTC(year, month - 1, 1));
-  const end = new Date(Date.UTC(year, month, 0)); // day 0 => last day of previous month
+function defaultRangeUtc(now = new Date()): { dateFrom: string; dateTo: string; label: string } {
+  // Default: last day of previous month → today (UTC).
+  //
+  // This avoids confusing ranges like “Mar 2026 – Mar 2026” when using rolling windows,
+  // since the PDF header displays month-year granularity.
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth(); // 0-11 for *current* month
+  const start = new Date(Date.UTC(y, m, 0)); // day 0 => last day of previous month
   const dateFrom = start.toISOString().slice(0, 10);
-  const dateTo = end.toISOString().slice(0, 10);
-  const label = start.toISOString().slice(0, 7); // YYYY-MM
+  const dateTo = now.toISOString().slice(0, 10);
+  const label = `${dateFrom}_${dateTo}`;
   return { dateFrom, dateTo, label };
 }
 
@@ -46,11 +48,19 @@ export const POST: APIRoute = async ({ request, url }) => {
   }>;
 
   const targets = await getSiteTargets();
+  const now = new Date();
   const entries = Object.entries(targets).filter(([, t]) => t.enabled && t.channelId);
-  const filtered = siteId ? entries.filter(([id]) => id === siteId) : entries;
+  const filtered = siteId
+    ? entries.filter(([id]) => id === siteId)
+    : entries.filter(([, t]) => {
+        const runAt = t.schedule?.runAt;
+        if (!runAt) return false;
+        const when = new Date(runAt);
+        return !Number.isNaN(when.getTime()) && when.getTime() <= now.getTime();
+      });
   if (filtered.length === 0) return json({ error: 'No enabled automation targets found.' }, 400);
 
-  const range = dateFrom && dateTo ? { dateFrom, dateTo, label: `${dateFrom}_${dateTo}` } : previousFullMonthRangeUtc();
+  const range = dateFrom && dateTo ? { dateFrom, dateTo, label: `${dateFrom}_${dateTo}` } : defaultRangeUtc();
 
   const results: Array<{ siteId: string; channelId: string; ok: boolean; detail?: string }> = [];
 
@@ -71,6 +81,17 @@ export const POST: APIRoute = async ({ request, url }) => {
         initialComment: `Website Analytics report for ${id} (${range.dateFrom} → ${range.dateTo})`,
         pdf,
       });
+
+      // Roll schedule forward ~1 month so it won't re-send immediately.
+      if (!siteId && t.schedule?.runAt) {
+        const prev = new Date(t.schedule.runAt);
+        if (!Number.isNaN(prev.getTime())) {
+          const next = new Date(prev);
+          next.setUTCMonth(next.getUTCMonth() + 1);
+          await setSiteTarget(id, { ...t, schedule: { timeZone: t.schedule.timeZone, runAt: next.toISOString() } });
+        }
+      }
+
       results.push({ siteId: id, channelId: t.channelId, ok: true });
     } catch (err) {
       results.push({ siteId: id, channelId: t.channelId, ok: false, detail: String(err) });

@@ -5,6 +5,26 @@
     "installedAt": "2026-04-27T13:44:55.994Z",
     "scopes": "channels:read,chat:write,files:write,chat:write.public"
   },
-  "siteTargets": {},
-  "sent": {}
+  "siteTargets": {
+    "fishfinger.me": {
+      "enabled": false,
+      "channelId": "C0AH9NMQW10",
+      "schedule": {
+        "timeZone": "Europe/London",
+        "dayOfMonth": 1,
+        "hour": 9,
+        "minute": 0
+      }
+    },
+    "moltenventures.com": {
+      "enabled": true,
+      "channelId": "C0B0YD5LTDW",
+      "schedule": {
+        "timeZone": "Europe/London",
+        "runAt": "2026-05-29T11:06:00.000Z"
+      }
+    }
+  },
+  "sent": {},
+  "sentSlackMessages": {}
 }

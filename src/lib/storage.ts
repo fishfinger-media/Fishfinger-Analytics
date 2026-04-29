@@ -19,12 +19,11 @@ export type SiteTarget = {
   schedule?: {
     /** IANA timezone, e.g. "Europe/London" */
     timeZone: string;
-    /** Day of month 1–28 (we cap at 28 to avoid short-month edge cases). */
-    dayOfMonth: number;
-    /** 0–23 */
-    hour: number;
-    /** 0–59 */
-    minute: number;
+    /**
+     * Next scheduled run instant in ISO-8601 (UTC), e.g. "2026-04-29T10:30:00.000Z".
+     * Chosen in Settings via a local date+time picker.
+     */
+    runAt: string;
   };
 };
 
@@ -95,6 +94,18 @@ export async function setSiteTarget(siteId: string, target: SiteTarget): Promise
   }
   const dev = await readDevFile();
   dev.siteTargets[siteId] = target;
+  await writeDevFile(dev);
+}
+
+export async function deleteSiteTarget(siteId: string): Promise<void> {
+  if (isKvConfigured()) {
+    const cur = (await kv.get<SiteTargets>('siteTargets')) ?? {};
+    delete cur[siteId];
+    await kv.set('siteTargets', cur);
+    return;
+  }
+  const dev = await readDevFile();
+  delete dev.siteTargets[siteId];
   await writeDevFile(dev);
 }
 
