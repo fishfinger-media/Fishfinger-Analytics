@@ -6,10 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "vercel-build": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium && astro build",
     "preview": "astro preview",
-    "start": "node dist/server/entry.mjs",
-    "postinstall": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium"
+    "start": "node dist/server/entry.mjs"
   },
   "repository": {
     "type": "git",
@@ -18,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@astrojs/node": "^10.0.5",
+    "@sparticuz/chromium": "^138.0.2",
     "@slack/web-api": "^7.15.1",
     "@tailwindcss/vite": "^4.2.2",
     "@vercel/kv": "^3.0.0",
@@ -25,7 +24,7 @@
     "chart.js": "^4.5.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
-    "playwright": "^1.59.1",
+    "playwright-core": "^1.59.1",
     "redis": "^5.8.2",
     "tailwindcss": "^4.2.2"
   },

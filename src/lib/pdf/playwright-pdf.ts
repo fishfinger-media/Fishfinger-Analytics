@@ -4,10 +4,9 @@ export async function renderReportPdfWithPlaywright(params: {
   dateFrom: string;
   dateTo: string;
 }): Promise<Buffer> {
-  // Ensure Playwright browsers are bundled into the deployment (Vercel/serverless).
-  // This must be set before importing Playwright.
-  process.env.PLAYWRIGHT_BROWSERS_PATH ??= '0';
-  const { chromium } = await import('playwright');
+  // On Vercel/serverless, bundling Playwright's downloaded browser binaries is brittle.
+  // Instead, use a serverless-friendly Chromium binary and Playwright's driver only.
+  const { chromium } = await import('playwright-core');
 
   const url =
     `${params.baseUrl.replace(/\/$/, '')}/report-print` +
@@ -15,10 +14,20 @@ export async function renderReportPdfWithPlaywright(params: {
     `&dateFrom=${encodeURIComponent(params.dateFrom)}` +
     `&dateTo=${encodeURIComponent(params.dateTo)}`;
 
-  const browser = await chromium.launch({
+  const isVercel = Boolean(process.env.VERCEL);
+  const launchOptions: Parameters<typeof chromium.launch>[0] = {
     // Vercel/serverless Linux environments typically require disabling the sandbox.
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
+  };
+
+  if (isVercel) {
+    const chromiumLambda = (await import('@sparticuz/chromium')).default;
+    launchOptions.executablePath = await chromiumLambda.executablePath();
+    launchOptions.args = [...chromiumLambda.args, ...(launchOptions.args ?? [])];
+    launchOptions.headless = chromiumLambda.headless;
+  }
+
+  const browser = await chromium.launch(launchOptions);
   try {
     // Important for crisp charts in PDFs:
     // Chart.js renders to <canvas> (raster). In headless Chromium the default DPR is ~1,
