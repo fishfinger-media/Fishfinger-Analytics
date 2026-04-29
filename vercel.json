@@ -1,10 +1,7 @@
 {
   "functions": {
     "_render": {
-      "includeFiles": [
-        "node_modules/playwright/.local-browsers/**",
-        "node_modules/playwright-core/.local-browsers/**"
-      ]
+      "includeFiles": "node_modules/playwright-core/.local-browsers/**"
     }
   }
 }
