@@ -29,15 +29,26 @@ export async function renderReportPdfWithPlaywright(params: {
 
   const browser = await chromium.launch(launchOptions);
   try {
+    const sitePassword = process.env.SITE_PASSWORD?.trim() || '';
+    const context = await browser.newContext({
+      extraHTTPHeaders: sitePassword ? { 'x-site-password': sitePassword } : undefined,
+    });
+
     // Important for crisp charts in PDFs:
     // Chart.js renders to <canvas> (raster). In headless Chromium the default DPR is ~1,
     // so printing produces visibly pixelated graphs. A higher deviceScaleFactor increases
     // the backing resolution for all canvases and layout.
-    const page = await browser.newPage({
+    const page = await context.newPage({
       viewport: { width: 1400, height: 900 },
       deviceScaleFactor: 2,
     });
-    await page.goto(url, { waitUntil: 'networkidle' });
+    const res = await page.goto(url, { waitUntil: 'networkidle' });
+    if (page.url().includes('/login')) {
+      throw new Error('PDF render was redirected to /login. Ensure SITE_PASSWORD is set in the runtime env so Playwright can authenticate via x-site-password.');
+    }
+    if (res && !res.ok()) {
+      throw new Error(`Failed to load report-print page: HTTP ${res.status()} ${res.statusText()}`);
+    }
     await page.waitForFunction(() => (globalThis as any).__FISHFINGER_REPORT_READY__ === true, null, {
       timeout: 120_000,
     });
