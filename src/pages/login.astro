@@ -1,0 +1,76 @@
+---
+const title = 'Login — Fishfinger Analytics';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root { color-scheme: light; }
+      body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: #0f172a; color: #e2e8f0; }
+      .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+      .card { width: 100%; max-width: 420px; background: rgba(255,255,255,0.06); border: 1px solid rgba(148,163,184,0.25); border-radius: 14px; padding: 22px; }
+      h1 { margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #f8fafc; }
+      p { margin: 0 0 16px 0; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+      label { display: block; font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px; }
+      input { width: 100%; border-radius: 10px; border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.65); color: #f8fafc; padding: 10px 12px; font-size: 14px; outline: none; }
+      input:focus { border-color: rgba(99,102,241,0.85); box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
+      button { width: 100%; margin-top: 12px; border: 0; border-radius: 10px; background: #4f46e5; color: #fff; padding: 10px 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+      button:hover { background: #4338ca; }
+      .status { margin-top: 10px; min-height: 18px; font-size: 12px; color: #cbd5e1; }
+      .error { color: #fecaca; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Enter password</h1>
+        <p>This site is private. Enter the password to continue.</p>
+
+        <form id="login-form">
+          <label for="pw">Password</label>
+          <input id="pw" name="password" type="password" autocomplete="current-password" required />
+          <button type="submit">Sign in</button>
+          <div id="status" class="status"></div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('login-form');
+      const status = document.getElementById('status');
+      const pw = document.getElementById('pw');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        status.textContent = 'Signing in…';
+        status.classList.remove('error');
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw.value }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.ok) {
+            status.textContent = data?.error || 'Login failed.';
+            status.classList.add('error');
+            return;
+          }
+          const next = new URLSearchParams(location.search).get('next') || '/';
+          location.href = next;
+        } catch (err) {
+          status.textContent = err instanceof Error ? err.message : 'Login failed.';
+          status.classList.add('error');
+        }
+      });
+    </script>
+  </body>
+</html>
+

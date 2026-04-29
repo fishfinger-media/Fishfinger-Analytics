@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "start": "node dist/server/entry.mjs",
-    "postinstall": "playwright install chromium"
+    "postinstall": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium"
   },
   "repository": {
     "type": "git",
