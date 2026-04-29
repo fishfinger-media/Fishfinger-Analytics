@@ -25,10 +25,21 @@ async function captureSlide(container: HTMLDivElement): Promise<string> {
     width: SLIDE_WIDTH_PX,
     height: SLIDE_HEIGHT_PX,
     onclone: (clonedDoc) => {
-      // html2canvas cannot parse oklch() (used extensively in Tailwind v4's
-      // CSS custom property definitions). Replace every occurrence in the
-      // cloned document's <style> elements before the canvas is drawn.
-      // Slide content uses explicit inline hex styles, so this is safe.
+      // html2canvas cannot parse `oklch()` (used by Tailwind v4). The PDF slides
+      // use explicit inline hex styles, so we can safely remove global stylesheets
+      // (Tailwind, app chrome, etc.) from the cloned document to prevent `oklch()`
+      // from ever reaching the parser.
+      //
+      // Keep only our PDF reset (injected by slides.ts) if present.
+      const head = clonedDoc.head;
+      for (const node of Array.from(head.querySelectorAll('link[rel="stylesheet"], style'))) {
+        const el = node as HTMLElement;
+        const id = el.getAttribute('id') ?? '';
+        if (id === 'pdf-oklch-reset') continue;
+        node.parentNode?.removeChild(node);
+      }
+
+      // Defensive: if any inline <style> remained, strip any oklch() fragments.
       for (const el of Array.from(clonedDoc.querySelectorAll('style'))) {
         if (el.textContent?.includes('oklch')) {
           el.textContent = el.textContent.replace(/oklch\([^)]+\)/g, 'transparent');

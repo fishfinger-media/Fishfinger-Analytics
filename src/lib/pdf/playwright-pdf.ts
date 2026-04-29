@@ -1,18 +1,24 @@
-import { chromium } from 'playwright';
-
 export async function renderReportPdfWithPlaywright(params: {
   baseUrl: string;
   siteId: string;
   dateFrom: string;
   dateTo: string;
 }): Promise<Buffer> {
+  // Ensure Playwright browsers are bundled into the deployment (Vercel/serverless).
+  // This must be set before importing Playwright.
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= '0';
+  const { chromium } = await import('playwright');
+
   const url =
     `${params.baseUrl.replace(/\/$/, '')}/report-print` +
     `?siteId=${encodeURIComponent(params.siteId)}` +
     `&dateFrom=${encodeURIComponent(params.dateFrom)}` +
     `&dateTo=${encodeURIComponent(params.dateTo)}`;
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    // Vercel/serverless Linux environments typically require disabling the sandbox.
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  });
   try {
     // Important for crisp charts in PDFs:
     // Chart.js renders to <canvas> (raster). In headless Chromium the default DPR is ~1,
