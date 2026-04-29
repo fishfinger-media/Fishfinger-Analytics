@@ -1,4 +1,5 @@
 import { kv } from '@vercel/kv';
+import { createClient, type RedisClientType } from 'redis';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
@@ -42,6 +43,43 @@ function isKvConfigured(): boolean {
   return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
+function getRedisUrl(): string | null {
+  // Vercel's Redis integration often injects "<resource>_REDIS_URL" (e.g. "fishfinger_REDIS_URL").
+  return process.env.REDIS_URL || process.env.fishfinger_REDIS_URL || null;
+}
+
+let redisClient: RedisClientType | null = null;
+let redisConnectPromise: Promise<RedisClientType> | null = null;
+
+async function getRedisClient(): Promise<RedisClientType> {
+  if (redisClient) return redisClient;
+  if (redisConnectPromise) return redisConnectPromise;
+
+  const url = getRedisUrl();
+  if (!url) {
+    throw new Error('Redis is not configured. Expected REDIS_URL or fishfinger_REDIS_URL.');
+  }
+
+  const client = createClient({ url });
+  redisConnectPromise = client.connect().then(() => {
+    redisClient = client;
+    return client;
+  });
+  return redisConnectPromise;
+}
+
+async function redisGetJson<T>(key: string): Promise<T | null> {
+  const client = await getRedisClient();
+  const raw = await client.get(key);
+  if (!raw) return null;
+  return JSON.parse(raw) as T;
+}
+
+async function redisSetJson(key: string, value: unknown): Promise<void> {
+  const client = await getRedisClient();
+  await client.set(key, JSON.stringify(value));
+}
+
 async function readDevFile(): Promise<StorageShape> {
   const file = process.env.DEV_STORAGE_PATH || DEFAULT_DEV_STORAGE_FILE;
   try {
@@ -65,6 +103,7 @@ async function writeDevFile(next: StorageShape): Promise<void> {
 
 export async function getSlackInstallation(): Promise<SlackInstallation | null> {
   if (isKvConfigured()) return (await kv.get<SlackInstallation>('slack:installation')) ?? null;
+  if (getRedisUrl()) return (await redisGetJson<SlackInstallation>('slack:installation')) ?? null;
   const dev = await readDevFile();
   return dev.slackInstallation;
 }
@@ -74,6 +113,10 @@ export async function setSlackInstallation(installation: SlackInstallation): Pro
     await kv.set('slack:installation', installation);
     return;
   }
+  if (getRedisUrl()) {
+    await redisSetJson('slack:installation', installation);
+    return;
+  }
   const dev = await readDevFile();
   dev.slackInstallation = installation;
   await writeDevFile(dev);
@@ -81,6 +124,7 @@ export async function setSlackInstallation(installation: SlackInstallation): Pro
 
 export async function getSiteTargets(): Promise<SiteTargets> {
   if (isKvConfigured()) return (await kv.get<SiteTargets>('siteTargets')) ?? {};
+  if (getRedisUrl()) return (await redisGetJson<SiteTargets>('siteTargets')) ?? {};
   const dev = await readDevFile();
   return dev.siteTargets;
 }
@@ -90,6 +134,12 @@ export async function setSiteTarget(siteId: string, target: SiteTarget): Promise
     const cur = (await kv.get<SiteTargets>('siteTargets')) ?? {};
     cur[siteId] = target;
     await kv.set('siteTargets', cur);
+    return;
+  }
+  if (getRedisUrl()) {
+    const cur = (await redisGetJson<SiteTargets>('siteTargets')) ?? {};
+    cur[siteId] = target;
+    await redisSetJson('siteTargets', cur);
     return;
   }
   const dev = await readDevFile();
@@ -102,6 +152,12 @@ export async function deleteSiteTarget(siteId: string): Promise<void> {
     const cur = (await kv.get<SiteTargets>('siteTargets')) ?? {};
     delete cur[siteId];
     await kv.set('siteTargets', cur);
+    return;
+  }
+  if (getRedisUrl()) {
+    const cur = (await redisGetJson<SiteTargets>('siteTargets')) ?? {};
+    delete cur[siteId];
+    await redisSetJson('siteTargets', cur);
     return;
   }
   const dev = await readDevFile();
@@ -120,6 +176,7 @@ function sentSlackMessageKey(siteId: string, yyyyMm: string): string {
 export async function wasSent(siteId: string, yyyyMm: string): Promise<boolean> {
   const key = sentKey(siteId, yyyyMm);
   if (isKvConfigured()) return Boolean(await kv.get(key));
+  if (getRedisUrl()) return (await (await getRedisClient()).get(key)) === '1';
   const dev = await readDevFile();
   return dev.sent[key] === true;
 }
@@ -128,6 +185,10 @@ export async function markSent(siteId: string, yyyyMm: string): Promise<void> {
   const key = sentKey(siteId, yyyyMm);
   if (isKvConfigured()) {
     await kv.set(key, true);
+    return;
+  }
+  if (getRedisUrl()) {
+    await (await getRedisClient()).set(key, '1');
     return;
   }
   const dev = await readDevFile();
@@ -142,6 +203,8 @@ export async function getSentSlackMessage(
   const key = sentSlackMessageKey(siteId, yyyyMm);
   if (isKvConfigured())
     return (await kv.get<{ channelId: string; ts: string; storedAt: string }>(key)) ?? null;
+  if (getRedisUrl())
+    return (await redisGetJson<{ channelId: string; ts: string; storedAt: string }>(key)) ?? null;
   const dev = await readDevFile();
   return dev.sentSlackMessages?.[key] ?? null;
 }
@@ -156,6 +219,10 @@ export async function setSentSlackMessage(params: {
   const value = { channelId: params.channelId, ts: params.ts, storedAt: new Date().toISOString() };
   if (isKvConfigured()) {
     await kv.set(key, value);
+    return;
+  }
+  if (getRedisUrl()) {
+    await redisSetJson(key, value);
     return;
   }
   const dev = await readDevFile();
